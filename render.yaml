@@ -17,6 +17,9 @@ services:
         generateValue: true
       - key: NUM_PROXIES
         value: "1"
+      # The tool app's origin. Leave empty until the app is hosted.
+      - key: CORS_ALLOWED_ORIGINS
+        sync: false
 
   - type: worker
     name: interviewops-reminders
