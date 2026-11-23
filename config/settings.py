@@ -105,7 +105,7 @@ STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": ["rest_framework.authentication.TokenAuthentication"],
+    "DEFAULT_AUTHENTICATION_CLASSES": ["accounts.authentication.ExpiringTokenAuthentication"],
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.IsAuthenticated"],
     "DEFAULT_RENDERER_CLASSES": ["rest_framework.renderers.JSONRenderer"],
     "DEFAULT_PAGINATION_CLASS": "config.pagination.DefaultPagination",
@@ -116,6 +116,7 @@ REST_FRAMEWORK = {
 }
 
 # Business rules
+TOKEN_TTL_HOURS = int(os.environ.get("TOKEN_TTL_HOURS", "12"))
 STUDENT_CANCELLATION_CUTOFF_HOURS = 2
 REMINDER_LEAD_HOURS = 24
 # Ten attempts with capped backoff ride out roughly four hours of mail outage.

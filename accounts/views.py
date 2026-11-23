@@ -1,6 +1,7 @@
 import logging
 
 from django.db import IntegrityError, transaction
+from django.utils import timezone
 from rest_framework import generics, status
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
@@ -10,6 +11,7 @@ from rest_framework.response import Response
 from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 
+from .authentication import expires_at
 from .models import User
 from .permissions import IsAdminRole
 from .serializers import RegisterSerializer, RoleSerializer, UserSerializer
@@ -34,8 +36,27 @@ class RegisterView(generics.CreateAPIView):
 
 
 class LoginView(ObtainAuthToken):
+    # A stale token left in the client must not stop its owner signing in again.
+    authentication_classes = []
     throttle_classes = [ScopedRateThrottle]
     throttle_scope = "auth"
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data, context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data["user"]
+        with transaction.atomic():
+            # Two logins at once must not both replace an expired token.
+            User.objects.select_for_update(no_key=True).get(pk=user.pk)
+            token = Token.objects.filter(user=user).first()
+            if token and expires_at(token) <= timezone.now():
+                token.delete()
+                token = None
+            token = token or Token.objects.create(user=user)
+        return Response({"token": token.key, "expires_at": expires_at(token)})
+
+    def get_authenticate_header(self, request):
+        return "Token"
 
 
 class LogoutView(APIView):
