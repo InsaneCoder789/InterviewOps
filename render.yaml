@@ -1,0 +1,41 @@
+# Check current Render plan availability and pricing before applying:
+# background workers are a paid service type.
+databases:
+  - name: interviewops-db
+    plan: free
+
+services:
+  - type: web
+    name: interviewops-api
+    runtime: docker
+    plan: free
+    healthCheckPath: /health/
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase: { name: interviewops-db, property: connectionString }
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: NUM_PROXIES
+        value: "1"
+
+  - type: worker
+    name: interviewops-reminders
+    runtime: docker
+    plan: starter
+    dockerCommand: python manage.py send_reminders
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase: { name: interviewops-db, property: connectionString }
+      - key: DJANGO_SECRET_KEY
+        fromService: { type: web, name: interviewops-api, envVarKey: DJANGO_SECRET_KEY }
+      # Required: the worker refuses to start without a real email backend.
+      - key: EMAIL_BACKEND
+        sync: false
+      - key: EMAIL_HOST
+        sync: false
+      - key: EMAIL_HOST_USER
+        sync: false
+      - key: EMAIL_HOST_PASSWORD
+        sync: false
+      - key: DEFAULT_FROM_EMAIL
+        sync: false
