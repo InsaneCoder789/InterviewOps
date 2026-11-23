@@ -1,0 +1,23 @@
+name: test
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_PASSWORD: ci-only
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-retries 10
+    env:
+      DJANGO_DEBUG: "1"
+      DATABASE_URL: postgresql://postgres:ci-only@localhost:5432/postgres
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.14" }
+      - run: pip install -r requirements.txt
+      - run: python manage.py makemigrations --check --dry-run
+      - run: python manage.py test tests
