@@ -222,6 +222,26 @@ class SlotAndBookingTests(Factory, TestCase):
                                        starts_at=slot.starts_at, ends_at=slot.ends_at)
 
 
+class ConstraintTests(Factory, TestCase):
+    """The overlap constraints hold for writes that skip the service."""
+
+    def test_database_rejects_overlapping_slots_for_a_mentor(self):
+        slot = self.slot(self.mentor())
+        with self.assertRaisesMessage(IntegrityError, "slot_no_mentor_overlap"):
+            with transaction.atomic():
+                Slot.objects.create(mentor=slot.mentor, topic="x",
+                                    starts_at=slot.starts_at, ends_at=slot.ends_at)
+
+    def test_database_rejects_overlapping_bookings_for_a_student(self):
+        student = self.user("student")
+        first, second = self.slot(self.mentor("m1")), self.slot(self.mentor("m2"))
+        services.book_slot(student=student, slot_id=first.pk)
+        with self.assertRaisesMessage(IntegrityError, "booking_no_student_overlap"):
+            with transaction.atomic():
+                Booking.objects.create(slot=second, student=student,
+                                       starts_at=first.starts_at, ends_at=first.ends_at)
+
+
 class RegressionTests(Factory, TestCase):
     """One test per defect found in review."""
 
