@@ -180,7 +180,9 @@ class SlotAndBookingTests(Factory, TestCase):
         slot = self.slot(self.m)
         Slot.objects.filter(pk=slot.pk).update(
             starts_at=timezone.now() - timedelta(minutes=5))
-        self.assertEqual(self.client.post("/api/bookings/", {"slot": slot.pk}).status_code, 409)
+        started = self.client.post("/api/bookings/", {"slot": slot.pk})
+        missing = self.client.post("/api/bookings/", {"slot": 999999})
+        self.assertEqual((started.status_code, started.data), (404, missing.data))
 
     def test_cancellation_cutoff_applies_to_students_only(self):
         slot = self.slot(self.m, hours=1)
@@ -205,7 +207,7 @@ class SlotAndBookingTests(Factory, TestCase):
         self.assertEqual((booking.status, booking.cancelled_by), ("cancelled", self.m))
         self.assertEqual(booking.reminder.status, "skipped")
         self.assertEqual(self.client.get("/api/slots/").data["count"], 0)
-        self.assertEqual(self.client.post("/api/bookings/", {"slot": slot.pk}).status_code, 409)
+        self.assertEqual(self.client.post("/api/bookings/", {"slot": slot.pk}).status_code, 404)
         self.assertEqual(mentor.post(f"/api/slots/{slot.pk}/cancel/").status_code, 409)
         # The mentor can publish over the withdrawn time again.
         services.publish_slot(mentor_id=self.m.pk, topic="x",
@@ -236,7 +238,7 @@ class RegressionTests(Factory, TestCase):
         self.deactivate(self.m)
         client = self.client_for(self.student)
         self.assertEqual(client.get("/api/slots/").data["count"], 0)
-        self.assertEqual(client.post("/api/bookings/", {"slot": slot.pk}).status_code, 409)
+        self.assertEqual(client.post("/api/bookings/", {"slot": slot.pk}).status_code, 404)
 
     def test_available_filter_excludes_cancelled_and_past_slots(self):
         open_slot, cancelled, past = (self.slot(self.m, hours=h) for h in (48, 52, 56))

@@ -77,12 +77,10 @@ def book_slot(*, student, slot_id):
                 raise PermissionDenied("Only students can book slots.")
             slot = _lock_slot(slot_id)
             now = timezone.now()  # read after waiting for locks
-            if not slot.mentor.is_active:
-                raise Conflict("This mentor is no longer available.")
-            if slot.cancelled_at:
-                raise Conflict("This slot has been cancelled.")
-            if slot.starts_at <= now:
-                raise Conflict("This slot has already started.")
+            # A slot students cannot list answers like one that never existed, so
+            # booking attempts do not reveal which IDs are real.
+            if slot.cancelled_at or slot.starts_at <= now or not slot.mentor.is_active:
+                raise NotFound("Slot not found.")
             if Booking.objects.filter(slot=slot, status=Booking.Status.BOOKED).exists():
                 raise Conflict(CONSTRAINT_MESSAGES["booking_one_active_per_slot"])
             booking = Booking.objects.create(

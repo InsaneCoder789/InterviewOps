@@ -418,13 +418,13 @@ transaction.
 | 400 | `{"slot": ["A valid integer is required."]}` |
 | 403 | caller is not a student |
 | 404 | `{"detail": "Slot not found."}` |
-| 409 | `{"detail": "This mentor is no longer available."}` |
-| 409 | `{"detail": "This slot has been cancelled."}` |
-| 409 | `{"detail": "This slot has already started."}` |
 | 409 | `{"detail": "This slot is already booked."}` |
 | 409 | `{"detail": "You already have a booking at this time."}` |
 
 Back-to-back bookings are allowed.
+
+A slot that is cancelled, has started or belongs to an inactive mentor returns
+the same `404` as an ID that does not exist.
 
 Statuses: `201`, `400`, `401`, `403`, `404`, `409`.
 

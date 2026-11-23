@@ -107,7 +107,7 @@ class ConcurrencyTests(Factory, TransactionTestCase):
                 lambda: services.book_slot(student=student, slot_id=slot.pk),
             )
             # Either order is valid; a live booking on a cancelled slot is not.
-            self.assertIn(dict(result), [{"ok": 2}, {"ok": 1, "Conflict": 1}])
+            self.assertIn(dict(result), [{"ok": 2}, {"ok": 1, "NotFound": 1}])
             self.assertIsNotNone(Slot.objects.get(pk=slot.pk).cancelled_at)
             self.assertFalse(Booking.objects.filter(slot=slot, status="booked").exists())
 
