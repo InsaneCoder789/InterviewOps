@@ -35,7 +35,9 @@ requests can pass that check at the same moment, and both insert.
 InterviewOps is a small backend built around that problem. A service layer takes
 row locks in a fixed order and returns a clear `409 Conflict`. PostgreSQL
 separately enforces a partial unique index and exclusion constraints, so code
-that skips the service still cannot create a double booking.
+that skips the service still cannot book one slot twice. The student-overlap
+rule compares times the service copies from the slot, so it relies on those
+being correct.
 
 ## Features
 
@@ -268,7 +270,7 @@ python manage.py test tests
 
 The database user needs permission to create the test database.
 
-There are 51 tests, including 9 concurrency tests that use real threads and real
+There are 53 tests, including 9 concurrency tests that use real threads and real
 PostgreSQL connections. To check that they can fail, the student lock, the mentor
 lock, the slot lock and `SKIP LOCKED` were each removed in turn, and the
 concurrency suite caught every removal. The student and mentor lock failures come
@@ -314,6 +316,8 @@ included.
   scale out.
 - Tokens do not expire and each user has one; logout revokes it.
 - No email verification, password reset or slot editing.
+- No database constraint ties a booking's times to its slot's times.
+- Cancelled, started and role rules are enforced by the service only.
 - Deactivating a user does not cancel their existing slots or bookings.
 - The Django admin login page has no rate limit if the admin is enabled.
 - An unrecognised value for the `available` filter is ignored, not rejected.
