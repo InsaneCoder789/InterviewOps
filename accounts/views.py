@@ -3,22 +3,110 @@ import logging
 from django.conf import settings
 from django.db import IntegrityError, transaction
 from django.utils import timezone
-from rest_framework import generics, status
+from rest_framework import generics, mixins, status, viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
-from rest_framework.exceptions import ValidationError
+from rest_framework.decorators import action
+from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 
+from . import invitations, passwords
 from .authentication import expires_at
 from .filters import UserFilter
-from .models import User
+from .models import Invitation, User
 from .permissions import IsAdminRole
-from .serializers import RegisterSerializer, RoleSerializer, UserSerializer
+from .serializers import (
+    AcceptInvitationSerializer,
+    InvitationSerializer,
+    PasswordChangeSerializer,
+    PasswordResetConfirmSerializer,
+    PasswordResetRequestSerializer,
+    RegisterSerializer,
+    RoleSerializer,
+    UserSerializer,
+    check_new_account,
+)
 
 logger = logging.getLogger("interviewops.accounts")
+
+
+class PublicAuthView(APIView):
+    """Unauthenticated and throttled. Subclasses set serializer_class and handle()."""
+
+    authentication_classes = []
+    permission_classes = [AllowAny]
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "auth"
+
+    def post(self, request):
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return self.handle(serializer.validated_data)
+
+    def get_authenticate_header(self, request):
+        return "Token"
+
+
+class AcceptInvitationView(PublicAuthView):
+    serializer_class = AcceptInvitationSerializer
+
+    def handle(self, data):
+        user = invitations.accept(**data, validate=check_new_account)
+        return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)
+
+
+class PasswordResetRequestView(PublicAuthView):
+    serializer_class = PasswordResetRequestSerializer
+
+    def handle(self, data):
+        passwords.request_reset(**data)
+        # The same answer whether or not the address has an account.
+        return Response(
+            {"detail": "If that address has an account, a reset link is on its way."},
+            status=status.HTTP_202_ACCEPTED,
+        )
+
+
+class PasswordResetConfirmView(PublicAuthView):
+    serializer_class = PasswordResetConfirmSerializer
+
+    def handle(self, data):
+        passwords.confirm_reset(**data)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class PasswordChangeView(APIView):
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "auth"
+
+    def post(self, request):
+        serializer = PasswordChangeSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        token = passwords.change(user=request.user, **serializer.validated_data)
+        return Response({"token": token.key, "expires_at": expires_at(token)})
+
+
+class InvitationViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    permission_classes = [IsAdminRole]
+    serializer_class = InvitationSerializer
+    queryset = Invitation.objects.all()
+    lookup_value_regex = r"\d{1,18}"
+
+    def create(self, request):
+        serializer = InvitationSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        invitation = invitations.invite(actor=request.user, **serializer.validated_data)
+        return Response(InvitationSerializer(invitation).data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=["post"])
+    def revoke(self, request, pk=None):
+        invitation = invitations.revoke(invitation_id=pk)
+        if invitation is None:
+            raise NotFound("Invitation not found.")
+        return Response(InvitationSerializer(invitation).data)
 
 
 class RegisterView(generics.CreateAPIView):

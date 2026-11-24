@@ -129,6 +129,11 @@ REST_FRAMEWORK = {
 # unless asked.
 ALLOW_REGISTRATION = env_bool("ALLOW_REGISTRATION", DEBUG)
 
+# Where the web app is served; emailed links point here.
+APP_BASE_URL = os.environ.get("APP_BASE_URL", "http://localhost:5173").rstrip("/")
+INVITATION_TTL_DAYS = 7
+PASSWORD_RESET_TIMEOUT = 3600
+
 # Business rules
 TOKEN_TTL_HOURS = int(os.environ.get("TOKEN_TTL_HOURS", "12"))
 STUDENT_CANCELLATION_CUTOFF_HOURS = 2

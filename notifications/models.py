@@ -11,6 +11,8 @@ class Notification(models.Model):
         BOOKING_CANCELLED = "booking_cancelled"
         BOOKING_RESCHEDULED = "booking_rescheduled"
         REMINDER = "reminder"
+        INVITATION = "invitation"
+        PASSWORD_RESET = "password_reset"
 
     class Status(models.TextChoices):
         PENDING = "pending"
@@ -26,6 +28,9 @@ class Notification(models.Model):
     )
     booking = models.ForeignKey(
         "scheduling.Booking", models.CASCADE, null=True, blank=True, related_name="notifications"
+    )
+    invitation = models.ForeignKey(
+        "accounts.Invitation", models.CASCADE, null=True, blank=True, related_name="notifications"
     )
     status = models.CharField(max_length=10, choices=Status.choices, default=Status.PENDING)
     # When pending: earliest next attempt. When sending: when the worker's lease expires.

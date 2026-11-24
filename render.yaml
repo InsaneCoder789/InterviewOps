@@ -42,3 +42,6 @@ services:
         sync: false
       - key: DEFAULT_FROM_EMAIL
         sync: false
+      # The tool app's address, used in emailed links.
+      - key: APP_BASE_URL
+        sync: false

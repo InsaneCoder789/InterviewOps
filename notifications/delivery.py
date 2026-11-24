@@ -26,6 +26,8 @@ def still_applies(notification, now):
     recipient, booking = notification.recipient, notification.booking
     if recipient is not None and not recipient.is_active:
         return False
+    if notification.invitation_id:
+        return notification.invitation.is_pending()
     if notification.kind in LIVE_BOOKING_KINDS:
         return (
             booking.status == booking.Status.BOOKED
