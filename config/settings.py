@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "django_filters",
     "accounts",
     "scheduling",
+    "notifications",
 ]
 
 MIDDLEWARE = [
@@ -133,10 +134,10 @@ TOKEN_TTL_HOURS = int(os.environ.get("TOKEN_TTL_HOURS", "12"))
 STUDENT_CANCELLATION_CUTOFF_HOURS = 2
 REMINDER_LEAD_HOURS = 24
 # Ten attempts with capped backoff ride out roughly four hours of mail outage.
-REMINDER_MAX_ATTEMPTS = 10
-REMINDER_RETRY_BASE_SECONDS = 60
-REMINDER_RETRY_MAX_SECONDS = 3600
-REMINDER_LEASE_SECONDS = 300
+NOTIFICATION_MAX_ATTEMPTS = 10
+NOTIFICATION_RETRY_BASE_SECONDS = 60
+NOTIFICATION_RETRY_MAX_SECONDS = 3600
+NOTIFICATION_LEASE_SECONDS = 300
 
 EMAIL_BACKEND = os.environ.get("EMAIL_BACKEND", "django.core.mail.backends.console.EmailBackend")
 EMAIL_HOST = os.environ.get("EMAIL_HOST", "localhost")
@@ -144,9 +145,9 @@ EMAIL_PORT = int(os.environ.get("EMAIL_PORT", "587"))
 EMAIL_HOST_USER = os.environ.get("EMAIL_HOST_USER", "")
 EMAIL_HOST_PASSWORD = os.environ.get("EMAIL_HOST_PASSWORD", "")
 EMAIL_USE_TLS = env_bool("EMAIL_USE_TLS", True)
-# Must stay well below REMINDER_LEASE_SECONDS so a hung send cannot outlive its claim.
+# Must stay well below NOTIFICATION_LEASE_SECONDS so a hung send cannot outlive its claim.
 EMAIL_TIMEOUT = 20
-DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "reminders@interviewops.invalid")
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "no-reply@interviewops.invalid")
 
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")

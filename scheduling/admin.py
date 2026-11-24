@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Booking, Reminder, Slot
+from .models import Booking, Slot
 
 
 class ReadOnlyAdmin(admin.ModelAdmin):
@@ -26,10 +26,4 @@ class SlotAdmin(ReadOnlyAdmin):
 class BookingAdmin(ReadOnlyAdmin):
     list_display = ["id", "slot_id", "student", "status", "starts_at"]
     list_select_related = ["student"]
-    list_filter = ["status"]
-
-
-@admin.register(Reminder)
-class ReminderAdmin(ReadOnlyAdmin):
-    list_display = ["id", "booking_id", "status", "attempts", "available_at"]
     list_filter = ["status"]

@@ -7,6 +7,7 @@ from rest_framework.test import APIClient
 
 from accounts.models import User
 from scheduling import services
+from scheduling.models import Booking, Slot
 
 PASSWORD = "test-only-passphrase-417"
 
@@ -33,3 +34,9 @@ class Factory:
         client = APIClient()
         client.credentials(HTTP_AUTHORIZATION=f"Token {Token.objects.get_or_create(user=user)[0].key}")
         return client
+
+    def move(self, slot, start, length=timedelta(hours=1)):
+        """Put a session at any time, including the past, keeping its bookings in step."""
+        pk = getattr(slot, "pk", slot)
+        Slot.objects.filter(pk=pk).update(starts_at=start, ends_at=start + length)
+        Booking.objects.filter(slot_id=pk).update(starts_at=start, ends_at=start + length)

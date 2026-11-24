@@ -14,9 +14,10 @@ from django.utils import timezone
 from rest_framework.exceptions import NotFound, PermissionDenied
 
 from accounts.models import User
+from notifications import outbox
 
 from .exceptions import Conflict
-from .models import Booking, Reminder, Slot
+from .models import Booking, Slot
 
 logger = logging.getLogger("interviewops.scheduling")
 
@@ -92,11 +93,8 @@ def book_slot(*, student, slot_id):
             booking = Booking.objects.create(
                 slot=slot, student=locked_student, starts_at=slot.starts_at, ends_at=slot.ends_at
             )
-            # Same transaction as the booking: both exist, or neither does.
-            Reminder.objects.create(
-                booking=booking,
-                available_at=max(now, slot.starts_at - timedelta(hours=settings.REMINDER_LEAD_HOURS)),
-            )
+            # Same transaction as the booking: both are saved, or neither is.
+            outbox.booking_created(booking)
     except IntegrityError as exc:
         raise _conflict_from(exc) from exc
     logger.info("booking_created booking_id=%s slot_id=%s", booking.pk, slot_id)
@@ -108,9 +106,7 @@ def _mark_cancelled(booking, actor, now):
     booking.cancelled_at = now
     booking.cancelled_by = actor
     booking.save(update_fields=["status", "cancelled_at", "cancelled_by"])
-    Reminder.objects.filter(
-        booking=booking, status__in=[Reminder.Status.PENDING, Reminder.Status.SENDING]
-    ).update(status=Reminder.Status.SKIPPED)
+    outbox.booking_cancelled(booking)
 
 
 @transaction.atomic

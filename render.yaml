@@ -22,10 +22,10 @@ services:
         sync: false
 
   - type: worker
-    name: interviewops-reminders
+    name: interviewops-worker
     runtime: docker
     plan: starter
-    dockerCommand: python manage.py send_reminders
+    dockerCommand: python manage.py send_notifications
     envVars:
       - key: DATABASE_URL
         fromDatabase: { name: interviewops-db, property: connectionString }

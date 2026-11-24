@@ -14,9 +14,11 @@ from django.db import connection
 from django.test import TransactionTestCase
 from django.utils import timezone
 
-from scheduling import reminders, services
+from notifications import delivery
+from notifications.models import Notification
+from scheduling import services
 from scheduling.exceptions import Conflict
-from scheduling.models import Booking, Reminder, Slot
+from scheduling.models import Booking, Slot
 
 from .base import Factory
 
@@ -50,7 +52,8 @@ class ConcurrencyTests(Factory, TransactionTestCase):
         ])
         self.assertEqual(result, {"ok": 1, "Conflict": 11})
         self.assertEqual(Booking.objects.filter(status="booked").count(), 1)
-        self.assertEqual(Reminder.objects.count(), 1)
+        # One confirmation and one reminder for each of the two participants.
+        self.assertEqual(Notification.objects.count(), 4)
 
     def test_http_requests_for_one_slot(self):
         slot = self.slot(self.mentor())
@@ -111,29 +114,30 @@ class ConcurrencyTests(Factory, TransactionTestCase):
             self.assertIsNotNone(Slot.objects.get(pk=slot.pk).cancelled_at)
             self.assertFalse(Booking.objects.filter(slot=slot, status="booked").exists())
 
-    def test_parallel_workers_send_each_reminder_once(self):
+    def test_parallel_workers_send_each_message_once(self):
         mentor = self.mentor()
-        for i in range(20):
+        for i in range(10):
             services.book_slot(
                 student=self.user(f"s{i}"), slot_id=self.slot(mentor, hours=48 + 2 * i).pk
             )
-        Reminder.objects.update(available_at=timezone.now() - timedelta(seconds=1))
-        result = race(*[reminders.process_due] * 4)
+        Notification.objects.update(available_at=timezone.now() - timedelta(seconds=1))
+        result = race(*[delivery.process_due] * 4)
         self.assertEqual(result, {"ok": 4})
-        self.assertEqual(len(mail.outbox), 20)
-        self.assertEqual(len({m.to[0] for m in mail.outbox}), 20)
-        self.assertEqual(Reminder.objects.filter(status="sent", attempts=1).count(), 20)
+        self.assertEqual(len(mail.outbox), 40)
+        self.assertEqual(len({(m.to[0], m.subject) for m in mail.outbox}), 40)
+        self.assertEqual(Notification.objects.filter(status="sent", attempts=1).count(), 40)
 
-    def test_worker_skips_a_reminder_locked_by_another(self):
+    def test_worker_skips_a_message_locked_by_another(self):
         services.book_slot(student=self.user("s"), slot_id=self.slot(self.mentor()).pk)
-        Reminder.objects.update(available_at=timezone.now() - timedelta(seconds=1))
+        Notification.objects.exclude(
+            pk=Notification.objects.order_by("id").first().pk).delete()
         locked, release = threading.Event(), threading.Event()
 
         def holder():
             from django.db import transaction
             try:
                 with transaction.atomic():
-                    list(Reminder.objects.select_for_update())
+                    list(Notification.objects.select_for_update())
                     locked.set()
                     release.wait(10)
             finally:
@@ -143,8 +147,8 @@ class ConcurrencyTests(Factory, TransactionTestCase):
         thread.start()
         try:
             self.assertTrue(locked.wait(10))
-            self.assertIsNone(reminders.claim_next())
+            self.assertIsNone(delivery.claim_next())
         finally:
             release.set()
             thread.join()
-        self.assertIsNotNone(reminders.claim_next())
+        self.assertIsNotNone(delivery.claim_next())

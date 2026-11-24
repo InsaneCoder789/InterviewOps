@@ -87,30 +87,3 @@ class Booking(models.Model):
                 name="booking_cancel_fields_consistent",
             ),
         ]
-
-
-class Reminder(models.Model):
-    class Status(models.TextChoices):
-        PENDING = "pending"
-        SENDING = "sending"
-        SENT = "sent"
-        FAILED = "failed"
-        SKIPPED = "skipped"
-
-    booking = models.OneToOneField(Booking, models.CASCADE, related_name="reminder")
-    status = models.CharField(max_length=10, choices=Status.choices, default=Status.PENDING)
-    # When pending: earliest next attempt. When sending: when the worker's lease expires.
-    available_at = models.DateTimeField()
-    attempts = models.PositiveSmallIntegerField(default=0)
-    last_error = models.CharField(max_length=500, blank=True)
-    sent_at = models.DateTimeField(null=True, blank=True)
-
-    class Meta:
-        ordering = ["available_at", "id"]
-        indexes = [
-            models.Index(
-                fields=["available_at", "id"],
-                condition=Q(status__in=["pending", "sending"]),
-                name="reminder_due_idx",
-            )
-        ]

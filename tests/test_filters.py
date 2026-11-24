@@ -39,8 +39,7 @@ class CommitmentFilterTests(Factory, TestCase):
 
     def test_ends_after_includes_a_session_in_progress(self):
         now = timezone.now()
-        Slot.objects.filter(pk=self.a.pk).update(
-            starts_at=now - timedelta(minutes=10), ends_at=now + timedelta(minutes=50))
+        self.move(self.a, now - timedelta(minutes=10))
         params = {"ends_after": now.isoformat()}
         self.assertEqual(self.ids(self.admin, "/api/slots/", **params), [self.a.pk, self.b.pk])
         params["starts_after"] = now.isoformat()

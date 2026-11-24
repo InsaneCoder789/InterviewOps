@@ -179,8 +179,7 @@ class SlotAndBookingTests(Factory, TestCase):
         self.assertEqual(self.client.post("/api/bookings/", {"slot": 999999}).status_code, 404)
         self.assertEqual(self.client.post("/api/bookings/", {"slot": "abc"}).status_code, 400)
         slot = self.slot(self.m)
-        Slot.objects.filter(pk=slot.pk).update(
-            starts_at=timezone.now() - timedelta(minutes=5))
+        self.move(slot, timezone.now() - timedelta(minutes=5))
         started = self.client.post("/api/bookings/", {"slot": slot.pk})
         missing = self.client.post("/api/bookings/", {"slot": 999999})
         self.assertEqual((started.status_code, started.data), (404, missing.data))
@@ -194,8 +193,7 @@ class SlotAndBookingTests(Factory, TestCase):
 
     def test_started_session_cannot_be_cancelled(self):
         booking = services.book_slot(student=self.student, slot_id=self.slot(self.m).pk)
-        Booking.objects.filter(pk=booking.pk).update(
-            starts_at=timezone.now() - timedelta(minutes=1))
+        self.move(booking.slot_id, timezone.now() - timedelta(minutes=1))
         admin = self.client_for(self.user("boss", User.Role.ADMIN))
         self.assertEqual(admin.post(f"/api/bookings/{booking.pk}/cancel/").status_code, 409)
 
@@ -206,7 +204,9 @@ class SlotAndBookingTests(Factory, TestCase):
         self.assertEqual(mentor.post(f"/api/slots/{slot.pk}/cancel/").status_code, 204)
         booking.refresh_from_db()
         self.assertEqual((booking.status, booking.cancelled_by), ("cancelled", self.m))
-        self.assertEqual(booking.reminder.status, "skipped")
+        self.assertEqual(
+            set(booking.notifications.exclude(kind="booking_cancelled")
+                .values_list("status", flat=True)), {"skipped"})
         self.assertEqual(self.client.get("/api/slots/").data["count"], 0)
         self.assertEqual(self.client.post("/api/bookings/", {"slot": slot.pk}).status_code, 404)
         self.assertEqual(mentor.post(f"/api/slots/{slot.pk}/cancel/").status_code, 409)
@@ -264,9 +264,7 @@ class RegressionTests(Factory, TestCase):
     def test_available_filter_excludes_cancelled_and_past_slots(self):
         open_slot, cancelled, past = (self.slot(self.m, hours=h) for h in (48, 52, 56))
         services.cancel_slot(actor=self.m, slot_id=cancelled.pk)
-        Slot.objects.filter(pk=past.pk).update(
-            starts_at=timezone.now() - timedelta(hours=3),
-            ends_at=timezone.now() - timedelta(hours=2))
+        self.move(past, timezone.now() - timedelta(hours=3))
         client = self.client_for(self.m)
         available = client.get("/api/slots/?available=true").data["results"]
         self.assertEqual([s["id"] for s in available], [open_slot.pk])

@@ -6,7 +6,6 @@ from django.utils import timezone
 from accounts.models import User
 from scheduling import services
 from scheduling.exceptions import Conflict
-from scheduling.models import Booking, Slot
 
 from .base import Factory
 
@@ -37,8 +36,7 @@ class ErrorCodeTests(Factory, TestCase):
 
         soon = services.book_slot(student=self.student, slot_id=self.slot(self.m, hours=1).pk)
         self.assertCode("cancel_cutoff", self.student, "post", f"/api/bookings/{soon.pk}/cancel/")
-        Booking.objects.filter(pk=soon.pk).update(
-            starts_at=timezone.now() - timedelta(minutes=1))
+        self.move(soon.slot_id, timezone.now() - timedelta(minutes=1))
         self.assertCode("session_started", self.admin, "post", f"/api/bookings/{soon.pk}/cancel/")
 
     def test_slot_codes(self):
@@ -50,8 +48,7 @@ class ErrorCodeTests(Factory, TestCase):
         self.client_for(self.m).post(cancel)
         self.assertCode("slot_already_cancelled", self.m, "post", cancel)
         started = self.slot(self.m, hours=60)
-        Slot.objects.filter(pk=started.pk).update(
-            starts_at=timezone.now() - timedelta(minutes=1))
+        self.move(started, timezone.now() - timedelta(minutes=1))
         self.assertCode("slot_started", self.m, "post", f"/api/slots/{started.pk}/cancel/")
 
     def test_role_codes(self):
