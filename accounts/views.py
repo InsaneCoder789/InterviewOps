@@ -1,5 +1,6 @@
 import logging
 
+from django.conf import settings
 from django.db import IntegrityError, transaction
 from django.utils import timezone
 from rest_framework import generics, status
@@ -25,6 +26,14 @@ class RegisterView(generics.CreateAPIView):
     throttle_classes = [ScopedRateThrottle]
     throttle_scope = "auth"
     serializer_class = RegisterSerializer
+
+    def create(self, request, *args, **kwargs):
+        if not settings.ALLOW_REGISTRATION:
+            return Response(
+                {"detail": "Registration is closed.", "code": "registration_closed"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        return super().create(request, *args, **kwargs)
 
     def perform_create(self, serializer):
         try:

@@ -1,7 +1,9 @@
 from django.test import TestCase, override_settings
 from rest_framework.test import APIClient
 
-from .base import Factory
+from accounts.models import User
+
+from .base import PASSWORD, Factory
 
 APP = "https://app.example.test"
 ALLOW = "Access-Control-Allow-Origin"
@@ -41,3 +43,31 @@ class CorsTests(Factory, TestCase):
     @override_settings(CORS_ALLOWED_ORIGINS=[])
     def test_nothing_is_shared_by_default(self):
         self.assertNotIn(ALLOW, APIClient().get("/health/", HTTP_ORIGIN=APP))
+
+
+class RegistrationAndConfigTests(Factory, TestCase):
+    body = {"username": "newbie", "email": "newbie@example.test", "password": PASSWORD}
+
+    @override_settings(ALLOW_REGISTRATION=False)
+    def test_closed_registration_creates_nothing(self):
+        response = APIClient().post("/api/auth/register/", self.body)
+        self.assertEqual((response.status_code, response.data["code"]),
+                         (403, "registration_closed"))
+        self.assertFalse(User.objects.exists())
+        self.assertFalse(APIClient().get("/api/config/").json()["registration_open"])
+
+    @override_settings(ALLOW_REGISTRATION=True)
+    def test_open_registration(self):
+        self.assertEqual(APIClient().post("/api/auth/register/", self.body).status_code, 201)
+
+    def test_config_is_public_and_matches_the_rules(self):
+        client = APIClient()
+        client.credentials(HTTP_AUTHORIZATION="Token stale")
+        response = client.get("/api/config/")
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(
+            (data["student_cancellation_cutoff_hours"], data["slot_min_minutes"],
+             data["slot_max_minutes"], data["reminder_lead_hours"]),
+            (2, 15, 180, 24))
+        self.assertEqual(client.post("/api/config/").status_code, 405)

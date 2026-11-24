@@ -124,6 +124,10 @@ REST_FRAMEWORK = {
     "NUM_PROXIES": int(os.environ.get("NUM_PROXIES", "0")),
 }
 
+# Sign-up has no email verification or password reset, so production keeps it closed
+# unless asked.
+ALLOW_REGISTRATION = env_bool("ALLOW_REGISTRATION", DEBUG)
+
 # Business rules
 TOKEN_TTL_HOURS = int(os.environ.get("TOKEN_TTL_HOURS", "12"))
 STUDENT_CANCELLATION_CUTOFF_HOURS = 2
