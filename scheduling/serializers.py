@@ -1,3 +1,4 @@
+from django.core.validators import URLValidator
 from django.utils import timezone
 from rest_framework import serializers
 
@@ -53,9 +54,29 @@ class BookingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Booking
         fields = ["id", "slot", "student", "student_name", "mentor", "mentor_name", "topic",
-                  "starts_at", "ends_at", "status", "created_at", "cancelled_at", "cancelled_by"]
+                  "starts_at", "ends_at", "status", "created_at", "cancelled_at", "cancelled_by",
+                  "meeting_link", "preparation_notes", "attendance", "rescheduled_from"]
         read_only_fields = fields
 
 
 class BookingCreateSerializer(serializers.Serializer):
     slot = serializers.IntegerField(min_value=1, max_value=2**63 - 1)
+
+
+class SessionUpdateSerializer(serializers.Serializer):
+    # https only: the link is shown to another person as something to open.
+    meeting_link = serializers.CharField(
+        max_length=500, required=False, allow_blank=True,
+        validators=[URLValidator(schemes=["https"], message="Use a full https:// address.")],
+    )
+    preparation_notes = serializers.CharField(max_length=2000, required=False, allow_blank=True)
+
+    def validate(self, attrs):
+        if not attrs:
+            raise serializers.ValidationError(
+                {"detail": "Send meeting_link or preparation_notes."})
+        return attrs
+
+
+class AttendanceSerializer(serializers.Serializer):
+    attendance = serializers.ChoiceField(choices=Booking.Attendance.choices)

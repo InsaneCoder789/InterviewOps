@@ -78,6 +78,15 @@ def publish_slot(*, mentor_id, topic, starts_at, ends_at):
     return slot
 
 
+def _check_open(slot, now):
+    # A slot students cannot list answers like one that never existed, so
+    # booking attempts do not reveal which IDs are real.
+    if slot.cancelled_at or slot.starts_at <= now or not slot.mentor.is_active:
+        raise NotFound("Slot not found.")
+    if Booking.objects.filter(slot=slot, status=Booking.Status.BOOKED).exists():
+        raise _constraint_conflict("booking_one_active_per_slot")
+
+
 def book_slot(*, student, slot_id):
     try:
         with transaction.atomic():
@@ -86,12 +95,7 @@ def book_slot(*, student, slot_id):
                 raise PermissionDenied("Only students can book slots.")
             slot = _lock_slot(slot_id)
             now = timezone.now()  # read after waiting for locks
-            # A slot students cannot list answers like one that never existed, so
-            # booking attempts do not reveal which IDs are real.
-            if slot.cancelled_at or slot.starts_at <= now or not slot.mentor.is_active:
-                raise NotFound("Slot not found.")
-            if Booking.objects.filter(slot=slot, status=Booking.Status.BOOKED).exists():
-                raise _constraint_conflict("booking_one_active_per_slot")
+            _check_open(slot, now)
             booking = Booking.objects.create(
                 slot=slot, student=locked_student, starts_at=slot.starts_at, ends_at=slot.ends_at
             )
@@ -103,17 +107,19 @@ def book_slot(*, student, slot_id):
     return booking
 
 
-def _mark_cancelled(booking, actor, now):
+def _mark_cancelled(booking, actor, now, notify=True):
     booking.status = Booking.Status.CANCELLED
     booking.cancelled_at = now
     booking.cancelled_by = actor
     booking.save(update_fields=["status", "cancelled_at", "cancelled_by"])
-    outbox.booking_cancelled(booking)
+    if notify:
+        outbox.booking_cancelled(booking)
+    else:
+        outbox.withdraw(booking)
 
 
-@transaction.atomic
-def cancel_booking(*, actor, booking_id):
-    """Cancel one booking. The slot becomes bookable again."""
+def _locked_booking(actor, booking_id):
+    """Lock the slot then the booking, hiding it from anyone not taking part."""
     slot_id = Booking.objects.filter(pk=booking_id).values_list("slot_id", flat=True).first()
     if slot_id is None:
         raise NotFound("Booking not found.")
@@ -125,19 +131,31 @@ def cancel_booking(*, actor, booking_id):
     is_admin = actor.role == User.Role.ADMIN
     if not (is_student or is_mentor or is_admin):
         raise NotFound("Booking not found.")  # do not reveal that it exists
+    return slot, booking
 
+
+def _check_changeable(actor, booking, now):
+    """Rules shared by cancelling and rescheduling."""
     if booking.status == Booking.Status.CANCELLED:
         raise Conflict("This booking is already cancelled.", "booking_already_cancelled")
     now = timezone.now()
     if booking.starts_at <= now:
         raise Conflict("A session that has started cannot be cancelled.", "session_started")
     cutoff = timedelta(hours=settings.STUDENT_CANCELLATION_CUTOFF_HOURS)
-    if is_student and not is_admin and booking.starts_at - now < cutoff:
+    if booking.student_id == actor.pk and booking.starts_at - now < cutoff:
         raise Conflict(
             "Students cannot cancel less than "
             f"{settings.STUDENT_CANCELLATION_CUTOFF_HOURS} hours before the session.",
             "cancel_cutoff",
         )
+
+
+@transaction.atomic
+def cancel_booking(*, actor, booking_id):
+    """Cancel one booking. The slot becomes bookable again."""
+    _, booking = _locked_booking(actor, booking_id)
+    now = timezone.now()
+    _check_changeable(actor, booking, now)
     _mark_cancelled(booking, actor, now)
     logger.info("booking_cancelled booking_id=%s actor_id=%s", booking.pk, actor.pk)
     return booking
@@ -231,3 +249,92 @@ def _cancel_future_sessions(actor, user):
             bookings = bookings.filter(student=user)
         for booking in bookings:
             _mark_cancelled(booking, actor, now)
+
+
+def reschedule_booking(*, actor, booking_id, slot_id):
+    """Move a booking to another slot. Both changes happen, or the old booking stays."""
+    found = Booking.objects.filter(pk=booking_id).values_list("student_id", "slot_id").first()
+    if found is None:
+        raise NotFound("Booking not found.")
+    student_id, old_slot_id = found
+    # Neither value ever changes on a booking, so reading them before locking is safe.
+    if not (actor.role == User.Role.ADMIN or actor.pk == student_id):
+        if not Slot.objects.filter(pk=old_slot_id, mentor=actor).exists():
+            raise NotFound("Booking not found.")
+        raise PermissionDenied("Only the student or an admin can reschedule.")
+    try:
+        with transaction.atomic():
+            student = _lock_user(student_id)
+            # Two slot locks are taken in primary-key order.
+            slots = {pk: _lock_slot(pk) for pk in sorted({old_slot_id, slot_id})}
+            old = Booking.objects.select_for_update().get(pk=booking_id)
+            now = timezone.now()
+            _check_changeable(actor, old, now)
+            if slot_id == old_slot_id:
+                raise Conflict("This booking is already in that slot.", "same_slot")
+            if student.role != User.Role.STUDENT or not student.is_active:
+                raise Conflict("The student can no longer book sessions.", "student_unavailable")
+            slot = slots[slot_id]
+            _check_open(slot, now)
+            # Cancel first, so the old time does not count as an overlap.
+            _mark_cancelled(old, actor, now, notify=False)
+            same_mentor = slot.mentor_id == slots[old_slot_id].mentor_id
+            booking = Booking.objects.create(
+                slot=slot, student=student, starts_at=slot.starts_at, ends_at=slot.ends_at,
+                preparation_notes=old.preparation_notes,
+                meeting_link=old.meeting_link if same_mentor else "",
+                rescheduled_from=old,
+            )
+            outbox.booking_created(booking, kind=outbox.Kind.BOOKING_RESCHEDULED)
+            if not same_mentor:
+                outbox.enqueue(outbox.Kind.BOOKING_CANCELLED, booking=old,
+                               recipient_id=slots[old_slot_id].mentor_id)
+    except IntegrityError as exc:
+        raise _conflict_from(exc) from exc
+    logger.info("booking_rescheduled from=%s to=%s actor_id=%s", booking_id, booking.pk, actor.pk)
+    return booking
+
+
+@transaction.atomic
+def update_session(*, actor, booking_id, meeting_link=None, preparation_notes=None):
+    """The mentor adds the meeting link; the student adds preparation notes."""
+    _, booking = _locked_booking(actor, booking_id)
+    admin = actor.role == User.Role.ADMIN
+    is_student = booking.student_id == actor.pk
+    if meeting_link is not None and not admin and is_student:
+        raise PermissionDenied("Only the mentor can set the meeting link.")
+    if preparation_notes is not None and not admin and not is_student:
+        raise PermissionDenied("Only the student can write preparation notes.")
+    if booking.status != Booking.Status.BOOKED:
+        raise Conflict("This booking is cancelled.", "booking_already_cancelled")
+    if booking.ends_at <= timezone.now():
+        raise Conflict("This session has ended.", "session_ended")
+    changed = []
+    if meeting_link is not None and meeting_link != booking.meeting_link:
+        booking.meeting_link = meeting_link
+        changed.append("meeting_link")
+    if preparation_notes is not None and preparation_notes != booking.preparation_notes:
+        booking.preparation_notes = preparation_notes
+        changed.append("preparation_notes")
+    if changed:
+        booking.save(update_fields=changed)
+    if "meeting_link" in changed and meeting_link:
+        outbox.session_updated(booking)
+    return booking
+
+
+@transaction.atomic
+def record_attendance(*, actor, booking_id, attendance):
+    _, booking = _locked_booking(actor, booking_id)
+    if booking.student_id == actor.pk:
+        raise PermissionDenied("Only the mentor or an admin can record attendance.")
+    if booking.status != Booking.Status.BOOKED:
+        raise Conflict("This booking is cancelled.", "booking_already_cancelled")
+    if booking.starts_at > timezone.now():
+        raise Conflict("This session has not started.", "session_not_started")
+    if attendance != Booking.Attendance.COMPLETED and hasattr(booking, "feedback"):
+        raise Conflict("Feedback exists, so the session took place.", "feedback_exists")
+    booking.attendance = attendance
+    booking.save(update_fields=["attendance"])
+    logger.info("attendance_recorded booking_id=%s actor_id=%s", booking.pk, actor.pk)
+    return booking

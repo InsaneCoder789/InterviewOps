@@ -27,6 +27,7 @@ def _session(booking, recipient):
         f"With: {other.username}\n"
         f"Starts: {_when(booking.starts_at)}\n"
         f"Ends: {_when(booking.ends_at)}"
+        + (f"\nMeeting link: {booking.meeting_link}" if booking.meeting_link else "")
     )
 
 
@@ -35,6 +36,7 @@ BOOKING_MESSAGES = {
     Kind.BOOKING_RESCHEDULED: ("Moved", "A mock interview has moved to a new time."),
     Kind.BOOKING_CANCELLED: ("Cancelled", "This mock interview has been cancelled."),
     Kind.REMINDER: ("Reminder", "Your mock interview is coming up."),
+    Kind.SESSION_UPDATED: ("Meeting link", "The meeting link for your session has been set."),
 }
 
 

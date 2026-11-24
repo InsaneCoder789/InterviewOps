@@ -167,3 +167,36 @@ class ConcurrencyTests(Factory, TransactionTestCase):
             self.assertEqual(result["ok"] >= 1, True, result)
             self.assertNotIn("OperationalError", result, f"round {i}")
             self.assertFalse(Booking.objects.filter(slot=slot, status="booked").exists(), i)
+
+    def test_rescheduling_races_keep_one_live_booking(self):
+        mentor = self.mentor()
+        for i in range(ROUNDS):
+            student, rival = self.user(f"s{i}"), self.user(f"r{i}")
+            old, new = (self.slot(mentor, hours=48 + 6 * i + n) for n in (0, 2))
+            booking = services.book_slot(student=student, slot_id=old.pk)
+            result = race(
+                lambda: services.reschedule_booking(
+                    actor=student, booking_id=booking.pk, slot_id=new.pk),
+                lambda: services.book_slot(student=rival, slot_id=new.pk),
+                lambda: services.cancel_booking(actor=mentor, booking_id=booking.pk),
+            )
+            self.assertNotIn("OperationalError", result, f"round {i}: {result}")
+            self.assertLessEqual(
+                Booking.objects.filter(student=student, status="booked").count(), 1)
+            self.assertEqual(Booking.objects.filter(slot=new, status="booked").count(), 1, i)
+
+    def test_two_students_swapping_slots_do_not_deadlock(self):
+        mentor = self.mentor()
+        a, b = self.user("a"), self.user("b")
+        for i in range(ROUNDS):
+            first, second = (self.slot(mentor, hours=48 + 6 * i + n) for n in (0, 2))
+            one = services.book_slot(student=a, slot_id=first.pk)
+            two = services.book_slot(student=b, slot_id=second.pk)
+            result = race(
+                lambda: services.reschedule_booking(
+                    actor=a, booking_id=one.pk, slot_id=second.pk),
+                lambda: services.reschedule_booking(
+                    actor=b, booking_id=two.pk, slot_id=first.pk),
+            )
+            # Each target is occupied, so both are refused, and neither hangs.
+            self.assertEqual(result, {"Conflict": 2}, f"round {i}")

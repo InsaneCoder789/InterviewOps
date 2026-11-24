@@ -14,8 +14,10 @@ from . import services
 from .filters import BookingFilter, SlotFilter
 from .models import Booking, Slot
 from .serializers import (
+    AttendanceSerializer,
     BookingCreateSerializer,
     BookingSerializer,
+    SessionUpdateSerializer,
     SlotCreateSerializer,
     SlotSerializer,
 )
@@ -99,8 +101,31 @@ class BookingViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.
         booking = self.get_queryset().get(pk=booking.pk)
         return Response(BookingSerializer(booking).data, status=status.HTTP_201_CREATED)
 
+    def _respond(self, booking, code=status.HTTP_200_OK):
+        booking = Booking.objects.select_related("student", "slot__mentor").get(pk=booking.pk)
+        return Response(BookingSerializer(booking).data, status=code)
+
     @action(detail=True, methods=["post"])
     def cancel(self, request, pk=None):
-        booking = services.cancel_booking(actor=request.user, booking_id=pk)
-        booking = Booking.objects.select_related("student", "slot__mentor").get(pk=booking.pk)
-        return Response(BookingSerializer(booking).data)
+        return self._respond(services.cancel_booking(actor=request.user, booking_id=pk))
+
+    @action(detail=True, methods=["post"])
+    def reschedule(self, request, pk=None):
+        serializer = BookingCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        booking = services.reschedule_booking(
+            actor=request.user, booking_id=int(pk), slot_id=serializer.validated_data["slot"])
+        return self._respond(booking, status.HTTP_201_CREATED)
+
+    def partial_update(self, request, pk=None):
+        serializer = SessionUpdateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return self._respond(services.update_session(
+            actor=request.user, booking_id=pk, **serializer.validated_data))
+
+    @action(detail=True, methods=["post"])
+    def attendance(self, request, pk=None):
+        serializer = AttendanceSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        return self._respond(services.record_attendance(
+            actor=request.user, booking_id=pk, **serializer.validated_data))
