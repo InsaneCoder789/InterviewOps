@@ -82,3 +82,17 @@ class CommitmentFilterTests(Factory, TestCase):
     def test_other_ordering_fields_are_ignored(self):
         self.assertEqual(self.ids(self.admin, "/api/slots/", ordering="-topic,mentor"),
                          [self.a.pk, self.b.pk])
+
+
+class UserDirectoryTests(Factory, TestCase):
+    def test_admin_searches_active_mentors(self):
+        admin = self.user("boss", User.Role.ADMIN)
+        priya, gone = self.mentor("Priya"), self.mentor("priyanka")
+        self.mentor("omar")
+        User.objects.filter(pk=gone.pk).update(is_active=False)
+        client = self.client_for(admin)
+        rows = client.get("/api/users/?role=mentor&search=PRI&is_active=true").data["results"]
+        self.assertEqual([(r["id"], r["is_active"]) for r in rows], [(priya.pk, True)])
+        self.assertEqual(client.get("/api/users/?is_active=false").data["count"], 1)
+        self.assertEqual(client.get("/api/users/?is_active=nope").status_code, 400)
+        self.assertEqual(self.client_for(priya).get("/api/users/?search=o").status_code, 403)

@@ -13,6 +13,7 @@ from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 
 from .authentication import expires_at
+from .filters import UserFilter
 from .models import User
 from .permissions import IsAdminRole
 from .serializers import RegisterSerializer, RoleSerializer, UserSerializer
@@ -85,7 +86,7 @@ class UserListView(generics.ListAPIView):
     permission_classes = [IsAdminRole]
     serializer_class = UserSerializer
     queryset = User.objects.all()
-    filterset_fields = ["role"]
+    filterset_class = UserFilter
 
 
 class UserRoleView(APIView):
