@@ -1,8 +1,8 @@
 # Architecture
 
 InterviewOps is one Django project with two processes: a web process that serves
-the API, and a worker that sends reminders. PostgreSQL holds the data, enforces
-the scheduling constraints and stores the reminder queue.
+the API, and a worker that sends email. PostgreSQL holds the data, enforces
+the scheduling constraints and stores the email queue.
 
 It has not been deployed. This document describes what the code does.
 
@@ -14,16 +14,16 @@ It has not been deployed. This document describes what the code does.
 | `scheduling/views.py` | authentication, permissions, validation and serialisation for slots and bookings |
 | `scheduling/services.py` | slot, booking, cancellation and role changes, each in a transaction |
 | `scheduling/models.py` | tables, indexes and database constraints |
-| `scheduling/reminders.py` | claiming and delivering reminders |
-| `scheduling/management/commands/send_reminders.py` | worker loop |
+| `notifications/` | email queue, composing, delivery, worker, delivery records, admin overview |
+| `feedback/` | feedback, ratings over time |
 | `config/` | settings, URL routing, health and client settings, CORS, error bodies, request logging, pagination, ordering |
 
-Account writes (registration and logout) are simple enough to live in
-`accounts/views.py`. Role changes affect scheduling, so they go through
-`services.change_role`.
+Invitations and passwords have their own modules in `accounts/`. Role and status
+changes affect scheduling, so they go through `services.change_role` and
+`services.set_active`.
 
 The Django admin is served at `/admin/` when `ENABLE_ADMIN` is on, which by
-default means only in debug mode. Slots, bookings and reminders are read-only
+default means only in debug mode. Slots, bookings, notifications and feedback are read-only
 there, and the role field cannot be edited, because edits would bypass the
 service rules.
 
@@ -31,45 +31,16 @@ service rules.
 
 ```mermaid
 erDiagram
+    USER ||--o| PROFILE : "describes"
     USER ||--o{ SLOT : "mentors"
     USER ||--o{ BOOKING : "books"
-    USER |o--o{ BOOKING : "cancels"
+    USER ||--o{ INVITATION : "sends"
     SLOT ||--o{ BOOKING : "has"
-    BOOKING ||--o| REMINDER : "schedules"
-
-    USER {
-        bigint id
-        string username
-        string email "unique"
-        string role "student, mentor or admin"
-    }
-    SLOT {
-        bigint id
-        bigint mentor_id
-        string topic
-        datetime starts_at
-        datetime ends_at
-        datetime cancelled_at "null while active"
-    }
-    BOOKING {
-        bigint id
-        bigint slot_id
-        bigint student_id
-        datetime starts_at "copied from the slot"
-        datetime ends_at "copied from the slot"
-        string status "booked or cancelled"
-        datetime cancelled_at
-        bigint cancelled_by_id
-    }
-    REMINDER {
-        bigint id
-        bigint booking_id "unique"
-        string status
-        datetime available_at
-        int attempts
-        string last_error
-        datetime sent_at
-    }
+    BOOKING |o--o| BOOKING : "rescheduled from"
+    BOOKING ||--o| FEEDBACK : "receives"
+    BOOKING ||--o{ NOTIFICATION : "causes"
+    INVITATION ||--o{ NOTIFICATION : "causes"
+    USER ||--o{ NOTIFICATION : "receives"
 ```
 
 The API does not delete slots or bookings: a cancelled one stays in its table,
@@ -85,6 +56,10 @@ marked by a timestamp (slot) or a status and timestamp (booking).
 | `booking_no_student_overlap` | exclusion, `booked` rows only | one student's active bookings do not overlap |
 | `booking_cancel_fields_consistent` | check | cancellation fields are set exactly when the status is `cancelled` |
 | `user_role_valid` | check | the role is one of the three values |
+| `booking_times_match_slot` | deferred trigger | an active booking has its slot's times |
+| `invitation_one_open_per_email` | partial unique index | one open invitation per address |
+| `notification_one_reminder_per_person` | partial unique index | one reminder per person per booking |
+| `feedback_*_range` | check | ratings are 1 to 5 |
 
 The exclusion constraints compare `tstzrange(starts_at, ends_at)`, which is
 half-open, `[start, end)`. Back-to-back sessions are therefore allowed. Combining
@@ -92,7 +67,7 @@ equality on a user ID with range overlap needs the `btree_gist` extension, which
 the first `scheduling` migration creates.
 
 Booking times are copied from the slot so that a constraint on the booking table
-can see them. This is safe because no API operation edits slot times.
+can see them. Triggers on both tables check the copy at commit.
 
 Slot duration (15 minutes to 3 hours) and the future-start rule are checked in
 the serializer and again in `publish_slot`, not by database constraints.
@@ -106,6 +81,9 @@ the serializer and again in `publish_slot`, not by database constraints.
 | `cancel_booking` | slot row, booking row |
 | `cancel_slot` | slot row, active booking rows |
 | `change_role` | actor and target user rows, in primary-key order |
+| `reschedule_booking` | student row, both slot rows in primary-key order, booking row |
+| `set_active` | actor and target rows, affected slots in primary-key order, their bookings |
+| `update_session`, `record_attendance`, `save_feedback` | slot row, booking row |
 
 The order is always user, then slot, then booking, and two user rows are taken in
 primary-key order. User and slot rows are locked
@@ -132,58 +110,49 @@ When a constraint rejects a write in `publish_slot` or `book_slot`,
 `services.py` maps the three expected constraint names to a `409` response. Any
 other integrity error is re-raised.
 
-## Reminder queue
+## Email queue
 
-`book_slot` inserts the reminder in the booking's transaction. It becomes due 24
-hours before the session, or immediately if the booking is made later than that.
+Every email is a row in `notifications_notification`, written in the same
+transaction as the change that causes it. The kinds are listed in
+[API.md](API.md#emails).
 
 ```mermaid
 stateDiagram-v2
-    [*] --> pending: booking created
+    [*] --> pending: queued
     pending --> sending: claimed, 5 minute lease
     sending --> sending: lease expired, claimed again
     sending --> sent: send succeeded
     sending --> pending: send failed, attempts remain
     sending --> failed: final attempt failed or its lease expired
-    pending --> skipped: cancelled, started or user inactive
-    sending --> skipped: cancelled, started or user inactive
-    sent --> [*]
-    failed --> [*]
-    skipped --> [*]
+    pending --> skipped: no longer applies
+    sending --> skipped: no longer applies
+    failed --> pending: admin retries
 ```
 
-1. **Claim.** In a short transaction, the worker selects the oldest due row in
-   `pending` or `sending` with `FOR UPDATE SKIP LOCKED`, marks it `sending`,
-   increments `attempts` and moves `available_at` to the end of the lease. If the
-   booking is cancelled, the session has started, or the student or mentor is
-   inactive, it marks the row `skipped` instead.
-2. **Deliver.** Outside any transaction, so a slow mail server holds no locks. It
-   sends only if the row is still `sending` with the same attempt number.
-3. **Record.** The outcome is written with the same condition, so a worker whose
-   claim was superseded or cancelled changes nothing.
+1. **Claim.** In a short transaction the worker takes the oldest due row with
+   `FOR UPDATE SKIP LOCKED`, marks it `sending`, increments `attempts` and sets a
+   lease. A notice that no longer applies (cancelled or started booking, inactive
+   person, closed invitation) is marked `skipped`.
+2. **Deliver.** Outside any transaction. The message is composed now, so it shows
+   current details. Links containing secrets are signed at this point; none are
+   stored.
+3. **Record.** Written only if the attempt still owns the row.
 
 | Setting | Value |
 |---|---|
-| Lead time | 24 hours |
+| Reminder lead time | 24 hours |
 | Lease | 300 seconds |
 | Mail timeout | 20 seconds |
 | Maximum attempts | 10 |
-| Wait after a failed attempt | 60 seconds, doubling each time |
-| Longest wait | 3600 seconds |
-| Worker poll interval when idle | 15 seconds (`--interval`) |
+| Wait after a failed attempt | 60 seconds, doubling, at most 3600 |
+| Worker poll interval when idle | 15 seconds |
 
-The waits before the tenth attempt add up to about four hours.
+Delivery is at-least-once: a worker that dies after the mail server accepts a
+message will send it again. A cancellation during a send cannot recall it.
 
-Delivery is at-least-once. If a worker dies after the mail server accepts a
-message but before the row is marked `sent`, the message is sent again after the
-lease expires. A cancellation that lands during the send itself cannot recall the
-email.
-
-The worker handles up to 100 reminders per pass. On `SIGINT` or `SIGTERM` it
-finishes the reminder in hand, claims no more and exits. It logs unexpected errors
-and keeps running. With debug off, the command refuses to run with the console
-email backend, which would mark reminders as sent and print addresses to the
-logs.
+The worker finishes the message in hand on `SIGINT` or `SIGTERM`. With debug off
+it refuses the console email backend. `check_queue` fails when mail is waiting too
+long.
 
 ## Authentication and authorisation
 
@@ -200,8 +169,9 @@ logs.
   `/admin/`; moving a user out of the admin role clears `is_staff` and
   `is_superuser`.
 - An inactive mentor's slots are hidden from students and cannot be booked.
-- Registration and login share a throttle of 10 requests per minute, counted in
-  each web process's local cache.
+- Sign-up, login, invitation acceptance and password endpoints share a limit of
+  10 requests per minute per address, counted in a database cache table that all
+  web processes share. The counter is not atomic, so a burst can exceed it slightly.
 
 ## Logging and health
 
@@ -211,9 +181,9 @@ not log bodies, query strings or authorisation headers. Django's own request
 logger adds lines for failed requests, and `runserver` logs the full request
 line.
 
-Reminder retry and failure logs contain the exception type, not its message,
+Email retry and failure logs contain the exception type, not its message,
 because mail errors can echo addresses. The message is stored in
-`Reminder.last_error`. The default console email backend prints whole messages,
+`Notification.last_error`. The default console email backend prints whole messages,
 including the recipient.
 
 `GET /health/` runs `SELECT 1` and returns `200`, or `503` if the query fails. It
@@ -237,6 +207,7 @@ here.
 | `AUTH_THROTTLE_RATE` | `10/min` | sign-up and login limit |
 | `TOKEN_TTL_HOURS` | `12` | token lifetime from creation |
 | `ALLOW_REGISTRATION` | same as debug | open public sign-up |
+| `APP_BASE_URL` | `http://localhost:5173` | web app address used in emailed links |
 | `CORS_ALLOWED_ORIGINS` | empty | comma-separated browser origins allowed to call the API |
 | `EMAIL_BACKEND` | console backend | set to Django's SMTP backend to send mail; the worker requires a non-console backend when debug is off |
 | `EMAIL_HOST` | `localhost` | SMTP host |
@@ -244,29 +215,30 @@ here.
 | `EMAIL_HOST_USER` | empty | SMTP user |
 | `EMAIL_HOST_PASSWORD` | empty | SMTP password |
 | `EMAIL_USE_TLS` | on | STARTTLS for SMTP |
-| `DEFAULT_FROM_EMAIL` | `reminders@interviewops.invalid` | sender address |
+| `DEFAULT_FROM_EMAIL` | `no-reply@interviewops.invalid` | sender address |
 | `LOG_LEVEL` | `INFO` | root log level |
 
 With debug off, session and CSRF cookies are secure, HSTS is set to one hour and
 `X-Forwarded-Proto` is trusted, so the app is meant to run behind a proxy that
 sets that header.
 
-Business rules (cancellation cutoff and reminder timing) are constants in
+Business rules (cancellation cutoff, reminder timing, invitation lifetime and
+feedback window) are constants in
 `config/settings.py`.
 
 ## Intended deployment
 
 Not built or deployed. `Dockerfile` produces one image that runs migrations and
 then Gunicorn with 2 workers, with static files served by WhiteNoise.
-`render.yaml` describes a web service, a reminder worker using the same image and
+`render.yaml` describes a web service, a mail worker using the same image and
 a PostgreSQL database.
 
 ## Trade-offs
 
-- **Database queue, not a broker.** One fewer service, and the booking and its
-  reminder commit together. Celery with a broker would be worth considering at
+- **Database queue, not a broker.** One fewer service, and a change and its email
+  commit together. Celery with a broker would be worth considering at
   higher volume or with many task types.
 - **Locks as well as constraints.** Constraints guarantee correctness. Locks turn
   races into predictable `409` responses instead of deadlocks.
-- **Immutable slot times.** It keeps the copied booking times correct. Changing a
-  time means cancelling the slot and publishing a new one.
+- **Immutable slot times.** A new time is a new slot; students move with
+  rescheduling.

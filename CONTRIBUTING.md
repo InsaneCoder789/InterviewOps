@@ -20,19 +20,22 @@ python manage.py makemigrations --check --dry-run
 python manage.py test tests
 ```
 
-The [test workflow](.github/workflows/test.yml) runs the same two commands. The
+The [test workflow](.github/workflows/test.yml) runs these and also checks
+production settings, migrations, restores and the container. The
 database user needs permission to create the test database and the `btree_gist`
 extension.
 
 ## Guidelines
 
-- **State changes to slots, bookings and roles go in `scheduling/services.py`.**
-  Views authenticate, validate and serialise.
+- **State changes to slots, bookings, roles and account status go in
+  `scheduling/services.py`.** Views authenticate, validate and serialise.
+- **Queue email through `notifications/outbox.py`** inside the transaction that
+  makes the change. Never store a link secret.
 - **Keep the lock order:** user row, then slot row, then booking row. Take two
   user rows in primary-key order.
 - **Back a scheduling rule with a database constraint** where PostgreSQL can
   express it. If a new constraint can be violated by a normal request, add its
-  message to `CONSTRAINT_MESSAGES` so the API returns `409`.
+  message and code to `CONSTRAINT_ERRORS` so the API returns `409`.
 - **Test behaviour, including refusals.** Cover who may not do something as well
   as who may.
 - **Race-sensitive changes need a concurrency test** in

@@ -36,8 +36,9 @@ These are documented already and do not need a private report:
 
 - API tokens expire a fixed time after creation, and each user has one shared by
   all their clients.
-- Sign-up and login throttling is counted per web process.
-- Email addresses are not verified, and there is no password reset.
+- The sign-in rate limit is not atomic, so a burst can slightly exceed it.
+- With public sign-up opened, email addresses are not verified. Invitations prove
+  the address.
 - In debug mode, the default console email backend prints messages, including
   recipient addresses, to the worker output.
 - The Django admin login page has no rate limit. The admin is off outside debug
