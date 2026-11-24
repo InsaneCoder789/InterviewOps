@@ -36,6 +36,7 @@ urlpatterns = [
     path("api/", include("accounts.urls")),
     path("api/", include("scheduling.urls")),
     path("api/", include("feedback.urls")),
+    path("api/", include("notifications.urls")),
 ]
 if settings.ENABLE_ADMIN:
     urlpatterns.append(path("admin/", admin.site.urls))
