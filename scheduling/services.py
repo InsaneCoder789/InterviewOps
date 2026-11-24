@@ -20,10 +20,11 @@ from .models import Booking, Reminder, Slot
 
 logger = logging.getLogger("interviewops.scheduling")
 
-CONSTRAINT_MESSAGES = {
-    "slot_no_mentor_overlap": "This overlaps another of the mentor's slots.",
-    "booking_one_active_per_slot": "This slot is already booked.",
-    "booking_no_student_overlap": "You already have a booking at this time.",
+# Constraint name -> (error code, message).
+CONSTRAINT_ERRORS = {
+    "slot_no_mentor_overlap": ("slot_overlap", "This overlaps another of the mentor's slots."),
+    "booking_one_active_per_slot": ("slot_already_booked", "This slot is already booked."),
+    "booking_no_student_overlap": ("student_overlap", "You already have a booking at this time."),
 }
 
 
@@ -45,9 +46,14 @@ def _lock_slot(slot_id):
 
 def _conflict_from(exc):
     name = getattr(getattr(exc.__cause__, "diag", None), "constraint_name", None)
-    if name not in CONSTRAINT_MESSAGES:
+    if name not in CONSTRAINT_ERRORS:
         raise exc
-    return Conflict(CONSTRAINT_MESSAGES[name])
+    return _constraint_conflict(name)
+
+
+def _constraint_conflict(name):
+    code, message = CONSTRAINT_ERRORS[name]
+    return Conflict(message, code)
 
 
 def publish_slot(*, mentor_id, topic, starts_at, ends_at):
@@ -55,11 +61,11 @@ def publish_slot(*, mentor_id, topic, starts_at, ends_at):
         with transaction.atomic():
             mentor = _lock_user(mentor_id)
             if mentor.role != User.Role.MENTOR or not mentor.is_active:
-                raise Conflict("Slots can only be published for an active mentor.")
+                raise Conflict("Slots can only be published for an active mentor.", "mentor_unavailable")
             if starts_at <= timezone.now():
-                raise Conflict("A slot must start in the future.")
+                raise Conflict("A slot must start in the future.", "slot_not_in_future")
             if not Slot.MIN_LENGTH <= ends_at - starts_at <= Slot.MAX_LENGTH:
-                raise Conflict("A slot must last between 15 minutes and 3 hours.")
+                raise Conflict("A slot must last between 15 minutes and 3 hours.", "slot_length")
             slot = Slot.objects.create(
                 mentor=mentor, topic=topic, starts_at=starts_at, ends_at=ends_at
             )
@@ -82,7 +88,7 @@ def book_slot(*, student, slot_id):
             if slot.cancelled_at or slot.starts_at <= now or not slot.mentor.is_active:
                 raise NotFound("Slot not found.")
             if Booking.objects.filter(slot=slot, status=Booking.Status.BOOKED).exists():
-                raise Conflict(CONSTRAINT_MESSAGES["booking_one_active_per_slot"])
+                raise _constraint_conflict("booking_one_active_per_slot")
             booking = Booking.objects.create(
                 slot=slot, student=locked_student, starts_at=slot.starts_at, ends_at=slot.ends_at
             )
@@ -123,15 +129,16 @@ def cancel_booking(*, actor, booking_id):
         raise NotFound("Booking not found.")  # do not reveal that it exists
 
     if booking.status == Booking.Status.CANCELLED:
-        raise Conflict("This booking is already cancelled.")
+        raise Conflict("This booking is already cancelled.", "booking_already_cancelled")
     now = timezone.now()
     if booking.starts_at <= now:
-        raise Conflict("A session that has started cannot be cancelled.")
+        raise Conflict("A session that has started cannot be cancelled.", "session_started")
     cutoff = timedelta(hours=settings.STUDENT_CANCELLATION_CUTOFF_HOURS)
     if is_student and not is_admin and booking.starts_at - now < cutoff:
         raise Conflict(
             "Students cannot cancel less than "
-            f"{settings.STUDENT_CANCELLATION_CUTOFF_HOURS} hours before the session."
+            f"{settings.STUDENT_CANCELLATION_CUTOFF_HOURS} hours before the session.",
+            "cancel_cutoff",
         )
     _mark_cancelled(booking, actor, now)
     logger.info("booking_cancelled booking_id=%s actor_id=%s", booking.pk, actor.pk)
@@ -145,10 +152,10 @@ def cancel_slot(*, actor, slot_id):
     if not (actor.role == User.Role.ADMIN or slot.mentor_id == actor.pk):
         raise NotFound("Slot not found.")
     if slot.cancelled_at:
-        raise Conflict("This slot is already cancelled.")
+        raise Conflict("This slot is already cancelled.", "slot_already_cancelled")
     now = timezone.now()
     if slot.starts_at <= now:
-        raise Conflict("A slot that has started cannot be cancelled.")
+        raise Conflict("A slot that has started cannot be cancelled.", "slot_started")
     slot.cancelled_at = now
     slot.save(update_fields=["cancelled_at"])
     for booking in slot.bookings.select_for_update().filter(status=Booking.Status.BOOKED):
@@ -160,7 +167,7 @@ def cancel_slot(*, actor, slot_id):
 @transaction.atomic
 def change_role(*, actor, user_id, role):
     if user_id == actor.pk:
-        raise Conflict("You cannot change your own role.")
+        raise Conflict("You cannot change your own role.", "own_role")
     # Lock both rows in primary-key order, then re-check the actor: two admins
     # demoting each other must not both succeed.
     locked = {pk: _lock_user(pk) for pk in sorted({actor.pk, user_id})}
@@ -174,7 +181,7 @@ def change_role(*, actor, user_id, role):
         user.slots.filter(cancelled_at__isnull=True, ends_at__gt=now).exists()
         or user.bookings.filter(status=Booking.Status.BOOKED, ends_at__gt=now).exists()
     ):
-        raise Conflict("Cancel this user's upcoming slots and bookings before changing role.")
+        raise Conflict("Cancel this user's upcoming slots and bookings before changing role.", "role_has_commitments")
     if user.role == User.Role.ADMIN:
         # Leaving the admin role also removes Django admin access.
         user.is_staff = user.is_superuser = False
