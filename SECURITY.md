@@ -34,7 +34,8 @@ do not own or have permission to test.
 
 These are documented already and do not need a private report:
 
-- API tokens do not expire.
+- API tokens expire a fixed time after creation, and each user has one shared by
+  all their clients.
 - Sign-up and login throttling is counted per web process.
 - Email addresses are not verified, and there is no password reset.
 - In debug mode, the default console email backend prints messages, including

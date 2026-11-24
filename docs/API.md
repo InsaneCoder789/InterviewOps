@@ -8,16 +8,20 @@ hosted instance. IDs, tokens and times are illustrative.
 - [Users](#users)
 - [Slots](#slots)
 - [Bookings](#bookings)
+- [Client settings](#client-settings)
 - [Health](#health)
 
 ## Conventions
 
 **Authentication.** Send `Authorization: Token <token>` on every endpoint except
-register, login and health.
+register, login, client settings and health. A token lasts 12 hours by default
+(`TOKEN_TTL_HOURS`), counted from when it was created. After that it returns `401`
+`{"detail": "Token has expired."}`.
 
 **Bodies.** Send `Content-Type: application/json`. Form-encoded and multipart
-bodies are also accepted. Responses with a body are JSON, except for URLs that
-match no route.
+bodies are also accepted. Responses with a body are JSON. Outside debug mode, an
+unmatched `/api/` URL returns `404` `{"detail": "Not found."}` and an unhandled
+error returns `500` `{"detail": "Server error."}`.
 
 **Paths** end with a slash.
 
@@ -25,6 +29,10 @@ match no route.
 UTC. Responses are in UTC.
 
 **Request ID.** Responses from the application carry an `X-Request-ID` header.
+
+**Browsers.** Origins listed in `CORS_ALLOWED_ORIGINS` may call `/api/` and
+`/health/` and can read the `Retry-After` and `X-Request-ID` headers. Cookies are
+not used.
 
 ### Pagination
 
@@ -49,16 +57,36 @@ Validation errors list messages by field:
 {"starts_at": ["Must be in the future."]}
 ```
 
-Other errors have a `detail` string:
+Other errors have a `detail` string. Every `409` also has a stable `code`; match
+on the code, not the message:
 
 ```json
-{"detail": "This slot is already booked."}
+{"detail": "This slot is already booked.", "code": "slot_already_booked"}
 ```
+
+| Code | Returned by |
+|---|---|
+| `slot_already_booked` | booking |
+| `student_overlap` | booking |
+| `booking_already_cancelled` | cancelling a booking |
+| `session_started` | cancelling a booking |
+| `cancel_cutoff` | cancelling a booking as its student |
+| `slot_overlap` | publishing |
+| `mentor_unavailable` | publishing |
+| `slot_not_in_future` | publishing |
+| `slot_length` | publishing |
+| `slot_already_cancelled` | cancelling a slot |
+| `slot_started` | cancelling a slot |
+| `own_role` | changing a role |
+| `role_has_commitments` | changing a role |
+
+The `409` examples below show `detail` only. A closed sign-up returns `403` with
+the code `registration_closed`.
 
 | Status | Meaning |
 |---|---|
 | 400 | invalid body or query parameter |
-| 401 | missing token (`Authentication credentials were not provided.`) or bad token (`Invalid token.`) |
+| 401 | missing token (`Authentication credentials were not provided.`), bad token (`Invalid token.`) or expired token (`Token has expired.`) |
 | 403 | your role may not do this (`You do not have permission to perform this action.`) |
 | 404 | not found, or not visible to you |
 | 405 | method not allowed on this path |
@@ -82,7 +110,10 @@ header:
 
 ### POST /api/auth/register/
 
-Anyone. Creates a student. Extra fields such as `role` are ignored.
+Anyone, while sign-up is open. Creates a student. Extra fields such as `role` are
+ignored. Sign-up is open in debug mode and closed otherwise unless
+`ALLOW_REGISTRATION` is set; when closed it returns `403`
+`{"detail": "Registration is closed.", "code": "registration_closed"}`.
 
 | Field | Rules |
 |---|---|
@@ -115,13 +146,14 @@ A weak password is reported under `password`. If two sign-ups for the same name
 or address race, the loser gets `400`
 `{"detail": "Username or email already in use."}`.
 
-Statuses: `201`, `400`, `429`.
+Statuses: `201`, `400`, `403`, `429`.
 
 ### POST /api/auth/login/
 
-Anyone. Returns the user's token, creating it if needed. Log in with the
-username, not the email. Do not send an `Authorization` header: a bad token is
-rejected with `401`.
+Anyone. Returns the user's token, creating one if there is none or the old one has
+expired. A token that is still valid is returned unchanged, so `expires_at` can be
+less than a full lifetime away. Log in with the username, not the email. Any
+`Authorization` header is ignored.
 
 ```http
 POST /api/auth/login/
@@ -132,7 +164,10 @@ POST /api/auth/login/
 `200 OK`
 
 ```json
-{"token": "0123456789abcdef0123456789abcdef01234567"}
+{
+  "token": "0123456789abcdef0123456789abcdef01234567",
+  "expires_at": "2026-11-27T20:15:30.124000Z"
+}
 ```
 
 `400 Bad Request`
@@ -141,7 +176,7 @@ POST /api/auth/login/
 {"non_field_errors": ["Unable to log in with provided credentials."]}
 ```
 
-Statuses: `200`, `400`, `401`, `429`.
+Statuses: `200`, `400`, `429`.
 
 ### POST /api/auth/logout/
 
@@ -158,7 +193,7 @@ Signed in.
 `200 OK`
 
 ```json
-{"id": 3, "username": "ravi", "email": "ravi@example.test", "role": "student"}
+{"id": 3, "username": "ravi", "email": "ravi@example.test", "role": "student", "is_active": true}
 ```
 
 Statuses: `200`, `401`.
@@ -167,7 +202,13 @@ Statuses: `200`, `401`.
 
 ### GET /api/users/
 
-Admin. Paginated, ordered by ID. Filter with `role=student|mentor|admin`.
+Admin. Paginated, ordered by ID.
+
+| Parameter | Meaning |
+|---|---|
+| `role` | `student`, `mentor` or `admin` |
+| `search` | case-insensitive substring of the username |
+| `is_active` | `true` or `false` |
 
 `200 OK`
 
@@ -177,7 +218,7 @@ Admin. Paginated, ordered by ID. Filter with `role=student|mentor|admin`.
   "next": null,
   "previous": null,
   "results": [
-    {"id": 2, "username": "maya", "email": "maya@example.test", "role": "mentor"}
+    {"id": 2, "username": "maya", "email": "maya@example.test", "role": "mentor", "is_active": true}
   ]
 }
 ```
@@ -203,7 +244,7 @@ PATCH /api/users/2/role/
 `200 OK`
 
 ```json
-{"id": 2, "username": "maya", "email": "maya@example.test", "role": "mentor"}
+{"id": 2, "username": "maya", "email": "maya@example.test", "role": "mentor", "is_active": true}
 ```
 
 Setting the role the user already has returns `200` and changes nothing.
@@ -249,15 +290,21 @@ Visibility depends on role:
 
 ### GET /api/slots/
 
-Signed in. Paginated, ordered by `starts_at`, then ID.
+Signed in. Paginated, ordered by `starts_at`, then ID. `ordering=-starts_at`
+reverses the order; other ordering fields are ignored.
 
 | Parameter | Meaning |
 |---|---|
 | `mentor` | mentor's user ID |
 | `topic` | case-insensitive substring |
-| `available` | `true` for bookable slots, `false` for the rest; other values are ignored |
+| `available` | `true` for bookable slots, `false` for the rest |
+| `cancelled` | `true` or `false` |
 | `starts_after` | `starts_at` at or after this time |
 | `starts_before` | `starts_at` strictly before this time |
+| `ends_after` | `ends_at` strictly after this time, so a session in progress is included |
+
+`true`, `false`, `1` and `0` are accepted for booleans, and anything else is
+`400`. IDs must be positive whole numbers.
 
 A slot is bookable when it has no active booking, is not cancelled, has not
 started and its mentor is active. The filter applies within the slots your role
@@ -352,6 +399,7 @@ A booking object:
   "slot": 1,
   "student": 3,
   "student_name": "ravi",
+  "mentor": 2,
   "mentor_name": "maya",
   "topic": "System design",
   "starts_at": "2026-12-01T10:00:00Z",
@@ -368,14 +416,21 @@ see all.
 
 ### GET /api/bookings/
 
-Signed in. Paginated, ordered by `starts_at`, then ID.
+Signed in. Paginated, ordered by `starts_at`, then ID. `ordering=-starts_at`
+reverses the order; other ordering fields are ignored.
 
 | Parameter | Meaning |
 |---|---|
 | `status` | `booked` or `cancelled` |
-| `slot` | slot ID; an ID with no visible bookings gives an empty list |
+| `slot` | slot ID |
+| `student` | student's user ID |
+| `mentor` | mentor's user ID |
 | `starts_after` | `starts_at` at or after this time |
 | `starts_before` | `starts_at` strictly before this time |
+| `ends_after` | `ends_at` strictly after this time, so a session in progress is included |
+
+An ID with no visible bookings gives an empty list. Filters never widen what your
+role can see.
 
 `200 OK` with a paginated list of booking objects.
 
@@ -441,6 +496,7 @@ bookable again and an unsent reminder is skipped.
   "slot": 1,
   "student": 3,
   "student_name": "ravi",
+  "mentor": 2,
   "mentor_name": "maya",
   "topic": "System design",
   "starts_at": "2026-12-01T10:00:00Z",
@@ -460,6 +516,25 @@ bookable again and an unsent reminder is skipped.
 | 409 | `{"detail": "Students cannot cancel less than 2 hours before the session."}` |
 
 Statuses: `200`, `401`, `404`, `409`.
+
+## Client settings
+
+### GET /api/config/
+
+Anyone. The rules a client needs before it has a token.
+
+```json
+{
+  "registration_open": true,
+  "token_ttl_hours": 12,
+  "student_cancellation_cutoff_hours": 2,
+  "reminder_lead_hours": 24,
+  "slot_min_minutes": 15,
+  "slot_max_minutes": 180
+}
+```
+
+Statuses: `200`, `405`.
 
 ## Health
 

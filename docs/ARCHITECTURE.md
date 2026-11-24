@@ -10,13 +10,13 @@ It has not been deployed. This document describes what the code does.
 
 | Path | Responsibility |
 |---|---|
-| `accounts/` | custom user model with a role, registration, token login and logout, user list, role endpoint |
+| `accounts/` | custom user model with a role, registration, expiring token login and logout, user list, role endpoint |
 | `scheduling/views.py` | authentication, permissions, validation and serialisation for slots and bookings |
 | `scheduling/services.py` | slot, booking, cancellation and role changes, each in a transaction |
 | `scheduling/models.py` | tables, indexes and database constraints |
 | `scheduling/reminders.py` | claiming and delivering reminders |
 | `scheduling/management/commands/send_reminders.py` | worker loop |
-| `config/` | settings, URL routing, health check, request logging, pagination |
+| `config/` | settings, URL routing, health and client settings, CORS, error bodies, request logging, pagination, ordering |
 
 Account writes (registration and logout) are simple enough to live in
 `accounts/views.py`. Role changes affect scheduling, so they go through
@@ -187,8 +187,12 @@ logs.
 
 ## Authentication and authorisation
 
-- Token authentication only on the API. One token per user, no expiry; logout
-  deletes it. Deactivated users are rejected.
+- Token authentication only on the API. One token per user, expiring 12 hours
+  after creation; logout deletes it, and login replaces an expired one under a
+  lock on the user row. Deactivated users are rejected.
+- Sign-up is closed outside debug mode unless `ALLOW_REGISTRATION` is set.
+- Browser origins must be listed in `CORS_ALLOWED_ORIGINS`. Only `/api/` and
+  `/health/` are shared, without cookies or wildcards.
 - Permission classes gate actions by role. Querysets scope what each role can
   read, so another user's booking is `404`.
 - The `admin` role is separate from Django's `is_staff`. `createsuperuser` sets
@@ -231,6 +235,9 @@ here.
 | `NUM_PROXIES` | `0` | trusted proxy count used to identify clients for throttling |
 | `ENABLE_ADMIN` | same as debug | serve the Django admin |
 | `AUTH_THROTTLE_RATE` | `10/min` | sign-up and login limit |
+| `TOKEN_TTL_HOURS` | `12` | token lifetime from creation |
+| `ALLOW_REGISTRATION` | same as debug | open public sign-up |
+| `CORS_ALLOWED_ORIGINS` | empty | comma-separated browser origins allowed to call the API |
 | `EMAIL_BACKEND` | console backend | set to Django's SMTP backend to send mail; the worker requires a non-console backend when debug is off |
 | `EMAIL_HOST` | `localhost` | SMTP host |
 | `EMAIL_PORT` | `587` | SMTP port |
