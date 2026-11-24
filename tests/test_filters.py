@@ -63,3 +63,22 @@ class CommitmentFilterTests(Factory, TestCase):
     def test_booking_names_its_mentor(self):
         data = self.client_for(self.s1).get(f"/api/bookings/{self.first.pk}/").data
         self.assertEqual(data["mentor"], self.m1.pk)
+
+    def test_ordering_both_ways_with_id_as_tie_break(self):
+        tie = self.slot(self.m1, hours=60)
+        Slot.objects.filter(pk=tie.pk).update(
+            starts_at=self.b.starts_at, ends_at=self.b.ends_at, mentor=self.m1)
+        expected = [self.a.pk, self.b.pk, tie.pk]
+        self.assertEqual(self.ids(self.admin, "/api/slots/", ordering="starts_at"), expected)
+        newest = [
+            self.ids(self.admin, "/api/slots/", ordering="-starts_at", page_size=1, page=n)[0]
+            for n in (1, 2, 3)
+        ]
+        self.assertEqual(newest, expected[::-1])
+        self.assertEqual(
+            self.ids(self.admin, "/api/bookings/", ordering="-starts_at"),
+            [self.second.pk, self.first.pk])
+
+    def test_other_ordering_fields_are_ignored(self):
+        self.assertEqual(self.ids(self.admin, "/api/slots/", ordering="-topic,mentor"),
+                         [self.a.pk, self.b.pk])

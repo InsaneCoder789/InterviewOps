@@ -1,5 +1,6 @@
 from django.db.models import Exists, OuterRef
 from django.utils import timezone
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -7,6 +8,7 @@ from rest_framework.response import Response
 
 from accounts.models import User
 from accounts.permissions import IsMentorOrAdmin, IsStudent
+from config.ordering import StableOrderingFilter
 
 from . import services
 from .filters import BookingFilter, SlotFilter
@@ -22,6 +24,8 @@ from .serializers import (
 class SlotViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
     serializer_class = SlotSerializer
     filterset_class = SlotFilter
+    filter_backends = [DjangoFilterBackend, StableOrderingFilter]
+    ordering_fields = ["starts_at"]
     lookup_value_regex = r"\d{1,18}"
 
     def get_permissions(self):
@@ -67,6 +71,8 @@ class SlotViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.Gen
 class BookingViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
     serializer_class = BookingSerializer
     filterset_class = BookingFilter
+    filter_backends = [DjangoFilterBackend, StableOrderingFilter]
+    ordering_fields = ["starts_at"]
     lookup_value_regex = r"\d{1,18}"
 
     def get_permissions(self):
