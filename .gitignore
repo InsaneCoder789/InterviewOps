@@ -3,5 +3,6 @@ __pycache__/
 *.pyc
 .env
 staticfiles/
+*.dump
 PLAN.md
 docs/plan/
