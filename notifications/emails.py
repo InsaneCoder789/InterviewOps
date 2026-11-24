@@ -76,6 +76,13 @@ def render(notification):
     if notification.kind == Kind.PASSWORD_RESET:
         return _password_reset(notification.recipient)
     recipient, booking = notification.recipient, notification.booking
+    if notification.kind == Kind.FEEDBACK_READY:
+        return (
+            "Your mock interview feedback is ready",
+            f"Hi {recipient.username},\n\nFeedback for your {booking.slot.topic} session "
+            f"is ready:\n{settings.APP_BASE_URL}/bookings/{booking.pk}\n",
+            recipient.email,
+        )
     label, lead = BOOKING_MESSAGES[notification.kind]
     return (
         f"{label}: mock interview on {_when(booking.starts_at)}",

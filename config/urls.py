@@ -26,6 +26,7 @@ def public_config(request):
         "reminder_lead_hours": settings.REMINDER_LEAD_HOURS,
         "slot_min_minutes": int(Slot.MIN_LENGTH.total_seconds() // 60),
         "slot_max_minutes": int(Slot.MAX_LENGTH.total_seconds() // 60),
+        "feedback_edit_days": settings.FEEDBACK_EDIT_DAYS,
     })
 
 
@@ -34,6 +35,7 @@ urlpatterns = [
     path("api/config/", require_GET(public_config)),
     path("api/", include("accounts.urls")),
     path("api/", include("scheduling.urls")),
+    path("api/", include("feedback.urls")),
 ]
 if settings.ENABLE_ADMIN:
     urlpatterns.append(path("admin/", admin.site.urls))

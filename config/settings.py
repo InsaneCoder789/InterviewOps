@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "accounts",
     "scheduling",
     "notifications",
+    "feedback",
 ]
 
 MIDDLEWARE = [
@@ -135,6 +136,7 @@ INVITATION_TTL_DAYS = 7
 PASSWORD_RESET_TIMEOUT = 3600
 
 # Business rules
+FEEDBACK_EDIT_DAYS = 7
 TOKEN_TTL_HOURS = int(os.environ.get("TOKEN_TTL_HOURS", "12"))
 STUDENT_CANCELLATION_CUTOFF_HOURS = 2
 REMINDER_LEAD_HOURS = 24
