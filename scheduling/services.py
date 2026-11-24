@@ -91,8 +91,9 @@ def book_slot(*, student, slot_id):
     try:
         with transaction.atomic():
             locked_student = _lock_user(student.pk)
-            if locked_student.role != User.Role.STUDENT:
-                raise PermissionDenied("Only students can book slots.")
+            # Read under the lock: the account may have changed since sign-in.
+            if locked_student.role != User.Role.STUDENT or not locked_student.is_active:
+                raise PermissionDenied("Only active students can book slots.")
             slot = _lock_slot(slot_id)
             now = timezone.now()  # read after waiting for locks
             _check_open(slot, now)
