@@ -16,6 +16,10 @@ urlpatterns = [
     path("auth/login/", views.LoginView.as_view()),
     path("auth/logout/", views.LogoutView.as_view()),
     path("auth/me/", views.MeView.as_view()),
+    path("profile/", views.MyProfileView.as_view()),
+    path("mentors/", views.MentorListView.as_view()),
+    path("users/<int:pk>/profile/", views.UserProfileView.as_view()),
+    path("users/<int:pk>/status/", views.UserStatusView.as_view()),
     path("users/", views.UserListView.as_view()),
     path("users/<int:pk>/role/", views.UserRoleView.as_view()),
 ]

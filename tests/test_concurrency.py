@@ -152,3 +152,18 @@ class ConcurrencyTests(Factory, TransactionTestCase):
             release.set()
             thread.join()
         self.assertIsNotNone(delivery.claim_next())
+
+    def test_deactivation_racing_a_booking(self):
+        admin = self.user("boss", "admin")
+        for i in range(ROUNDS):
+            mentor, student = self.mentor(f"m{i}"), self.user(f"s{i}")
+            slot = self.slot(mentor)
+            target = student if i % 2 else mentor
+            result = race(
+                lambda: services.set_active(actor=admin, user_id=target.pk, is_active=False),
+                lambda: services.book_slot(student=student, slot_id=slot.pk),
+            )
+            # Either order is valid; a live booking with a deactivated person is not.
+            self.assertEqual(result["ok"] >= 1, True, result)
+            self.assertNotIn("OperationalError", result, f"round {i}")
+            self.assertFalse(Booking.objects.filter(slot=slot, status="booked").exists(), i)

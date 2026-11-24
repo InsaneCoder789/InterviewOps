@@ -10,7 +10,9 @@ from datetime import timedelta
 
 from django.conf import settings
 from django.db import IntegrityError, transaction
+from django.db.models import Q
 from django.utils import timezone
+from rest_framework.authtoken.models import Token
 from rest_framework.exceptions import NotFound, PermissionDenied
 
 from accounts.models import User
@@ -185,3 +187,47 @@ def change_role(*, actor, user_id, role):
     user.save(update_fields=["role", "is_staff", "is_superuser"])
     logger.info("role_changed user_id=%s role=%s actor_id=%s", user.pk, role, actor.pk)
     return user
+
+
+@transaction.atomic
+def set_active(*, actor, user_id, is_active):
+    """Deactivate or restore an account. Deactivating cancels its future sessions."""
+    if user_id == actor.pk:
+        raise Conflict("You cannot change your own account status.", "own_status")
+    locked = {pk: _lock_user(pk) for pk in sorted({actor.pk, user_id})}
+    if locked[actor.pk].role != User.Role.ADMIN or not locked[actor.pk].is_active:
+        raise PermissionDenied("Only admins can change account status.")
+    user = locked[user_id]
+    if user.is_active == is_active:
+        return user
+    user.is_active = is_active
+    user.save(update_fields=["is_active"])
+    if not is_active:
+        Token.objects.filter(user=user).delete()
+        _cancel_future_sessions(actor, user)
+    logger.info("status_changed user_id=%s active=%s actor_id=%s",
+                user.pk, is_active, actor.pk)
+    return user
+
+
+def _cancel_future_sessions(actor, user):
+    """The caller holds the user's row lock, so no new commitment can appear."""
+    now = timezone.now()
+    booked = Booking.objects.filter(
+        student=user, status=Booking.Status.BOOKED, starts_at__gt=now
+    ).values_list("slot_id", flat=True)
+    # Every slot lock is taken in primary-key order.
+    slots = list(
+        Slot.objects.select_for_update(no_key=True)
+        .filter(Q(mentor=user, cancelled_at__isnull=True, starts_at__gt=now) | Q(pk__in=booked))
+        .order_by("pk")
+    )
+    for slot in slots:
+        bookings = slot.bookings.select_for_update().filter(status=Booking.Status.BOOKED)
+        if slot.mentor_id == user.pk:
+            slot.cancelled_at = now
+            slot.save(update_fields=["cancelled_at"])
+        else:
+            bookings = bookings.filter(student=user)
+        for booking in bookings:
+            _mark_cancelled(booking, actor, now)

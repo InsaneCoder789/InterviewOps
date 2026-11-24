@@ -15,22 +15,37 @@ from rest_framework.views import APIView
 
 from . import invitations, passwords
 from .authentication import expires_at
-from .filters import UserFilter
-from .models import Invitation, User
+from .filters import MentorFilter, UserFilter
+from .models import Invitation, Profile, User
 from .permissions import IsAdminRole
+from .profiles import profile_of, visible_users
 from .serializers import (
     AcceptInvitationSerializer,
     InvitationSerializer,
     PasswordChangeSerializer,
     PasswordResetConfirmSerializer,
     PasswordResetRequestSerializer,
+    ProfileSerializer,
     RegisterSerializer,
     RoleSerializer,
+    StatusSerializer,
     UserSerializer,
     check_new_account,
 )
 
 logger = logging.getLogger("interviewops.accounts")
+
+
+class UserStatusView(APIView):
+    permission_classes = [IsAdminRole]
+
+    def patch(self, request, pk):
+        from scheduling.services import set_active
+
+        serializer = StatusSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = set_active(actor=request.user, user_id=pk, **serializer.validated_data)
+        return Response(UserSerializer(user).data)
 
 
 class PublicAuthView(APIView):
@@ -187,3 +202,40 @@ class UserRoleView(APIView):
         serializer.is_valid(raise_exception=True)
         user = change_role(actor=request.user, user_id=pk, role=serializer.validated_data["role"])
         return Response(UserSerializer(user).data)
+
+
+class MyProfileView(APIView):
+    def get(self, request):
+        return Response(ProfileSerializer(profile_of(request.user)).data)
+
+    def patch(self, request):
+        with transaction.atomic():
+            # Serialises two first saves, which would otherwise both insert.
+            User.objects.select_for_update(no_key=True).get(pk=request.user.pk)
+            serializer = ProfileSerializer(
+                profile_of(request.user), data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+        return Response(serializer.data)
+
+
+class UserProfileView(APIView):
+    def get(self, request, pk):
+        user = visible_users(request.user).filter(pk=pk).first()
+        if user is None:
+            raise NotFound("Profile not found.")
+        return Response(ProfileSerializer(profile_of(user)).data)
+
+
+class MentorListView(generics.ListAPIView):
+    """The directory students browse."""
+
+    serializer_class = ProfileSerializer
+    filterset_class = MentorFilter
+    queryset = User.objects.filter(role=User.Role.MENTOR, is_active=True).select_related(
+        "profile")
+
+    def list(self, request, *args, **kwargs):
+        page = self.paginate_queryset(self.filter_queryset(self.get_queryset()))
+        profiles = [getattr(user, "profile", None) or Profile(user=user) for user in page]
+        return self.get_paginated_response(ProfileSerializer(profiles, many=True).data)

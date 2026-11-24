@@ -1,9 +1,11 @@
+from zoneinfo import available_timezones
+
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
-from .models import Invitation, User
+from .models import Invitation, Profile, User
 
 
 def check_password_strength(password, user, field="password"):
@@ -45,6 +47,15 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         return User.objects.create_user(**validated_data)
+
+
+class StatusSerializer(serializers.Serializer):
+    is_active = serializers.BooleanField(required=True)
+
+    def validate(self, attrs):
+        if "is_active" not in self.initial_data:
+            raise serializers.ValidationError({"is_active": ["This field is required."]})
+        return attrs
 
 
 class RoleSerializer(serializers.ModelSerializer):
@@ -92,3 +103,36 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
     uid = serializers.CharField(max_length=64)
     token = serializers.CharField(max_length=128)
     password = password_field()
+
+
+class TagListField(serializers.ListField):
+    """Short labels, trimmed, lower-cased and without repeats, so they can be matched."""
+
+    def __init__(self, **kwargs):
+        super().__init__(child=serializers.CharField(max_length=60), **kwargs)
+
+    def to_internal_value(self, data):
+        values = super().to_internal_value(data)
+        unique = list(dict.fromkeys(value.lower() for value in values))
+        if len(unique) > 15:
+            raise serializers.ValidationError("Use at most 15 entries.")
+        return unique
+
+
+class ProfileSerializer(serializers.ModelSerializer):
+    user = serializers.IntegerField(source="user_id", read_only=True)
+    username = serializers.CharField(source="user.username", read_only=True)
+    role = serializers.CharField(source="user.role", read_only=True)
+    target_roles = TagListField(required=False)
+    topics = TagListField(required=False)
+
+    class Meta:
+        model = Profile
+        # No email address: other members see profiles.
+        fields = ["user", "username", "role", "display_name", "headline", "bio",
+                  "experience_level", "target_roles", "topics", "timezone"]
+
+    def validate_timezone(self, value):
+        if value not in available_timezones():
+            raise serializers.ValidationError("Use an IANA name such as Asia/Kolkata.")
+        return value

@@ -1,4 +1,5 @@
 from django.contrib.auth.models import AbstractUser, UserManager
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils import timezone
 
@@ -65,3 +66,22 @@ class Invitation(models.Model):
 
     def is_pending(self):
         return self.status == "pending"
+
+
+class Profile(models.Model):
+    class Level(models.TextChoices):
+        STUDENT = "student"
+        ENTRY = "entry"
+        MID = "mid"
+        SENIOR = "senior"
+
+    user = models.OneToOneField(User, models.CASCADE, primary_key=True, related_name="profile")
+    display_name = models.CharField(max_length=80, blank=True)
+    headline = models.CharField(max_length=120, blank=True)
+    bio = models.TextField(max_length=2000, blank=True)
+    experience_level = models.CharField(max_length=10, choices=Level.choices, blank=True)
+    # For a student: roles aimed for and topics to practise. For a mentor: topics offered.
+    target_roles = ArrayField(models.CharField(max_length=60), default=list, blank=True)
+    topics = ArrayField(models.CharField(max_length=60), default=list, blank=True)
+    timezone = models.CharField(max_length=64, default="UTC")
+    updated_at = models.DateTimeField(auto_now=True)
