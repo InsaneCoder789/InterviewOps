@@ -1,0 +1,44 @@
+name: deploy
+# Manual only. Needs the secrets RENDER_API_DEPLOY_HOOK and
+# RENDER_WORKER_DEPLOY_HOOK and the variable API_URL, set after the services
+# have been created. Nothing is deployed yet.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 15
+    steps:
+      - name: Require a passing test run for this commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          passed=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/test.yml/runs?head_sha=$GITHUB_SHA&status=success" --jq .total_count)
+          test "$passed" -gt 0
+      - name: Trigger the API and worker deploys
+        env:
+          API_HOOK: ${{ secrets.RENDER_API_DEPLOY_HOOK }}
+          WORKER_HOOK: ${{ secrets.RENDER_WORKER_DEPLOY_HOOK }}
+        run: |
+          test -n "$API_HOOK" && test -n "$WORKER_HOOK"
+          for hook in "$API_HOOK" "$WORKER_HOOK"; do
+            curl --fail --silent --show-error -X POST "$hook&ref=$GITHUB_SHA" > /dev/null
+          done
+      - name: Check the service answers
+        env:
+          API_URL: ${{ vars.API_URL }}
+        run: |
+          # Confirms availability only; check the host's dashboard for the new release.
+          test -n "$API_URL"
+          curl --fail --silent --retry 20 --retry-delay 15 --retry-all-errors "$API_URL/health/"

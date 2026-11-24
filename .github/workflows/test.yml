@@ -1,8 +1,20 @@
 name: test
-on: [push, pull_request]
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     services:
       postgres:
         image: postgres:18
@@ -15,9 +27,49 @@ jobs:
       DJANGO_DEBUG: "1"
       DATABASE_URL: postgresql://postgres:ci-only@localhost:5432/postgres
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with: { python-version: "3.14" }
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with: { python-version: "3.14", cache: pip }
       - run: pip install -r requirements.txt
       - run: python manage.py makemigrations --check --dry-run
       - run: python manage.py test tests
+      - name: Check production settings
+        env:
+          DJANGO_DEBUG: "0"
+          DJANGO_SECRET_KEY: ci-only-${{ github.run_id }}-0123456789abcdefghijklmnopqrstuvwxyz-ABCDEFGHIJKL
+        run: python manage.py check --deploy --fail-level WARNING
+      - name: Prove migrations reverse and reapply
+        run: |
+          python manage.py migrate --noinput
+          python manage.py migrate scheduling 0003 --noinput
+          python manage.py migrate --noinput
+      - name: Back up and restore
+        env:
+          PGPASSWORD: ci-only
+        run: |
+          # Use the client tools from the server image, so the versions match.
+          python manage.py seed_demo --password "ci-only-demo-passphrase"
+          docker run --rm --network host -v "$PWD:/work" -w /work -e DATABASE_URL -e PGPASSWORD postgres:18 sh -ec '
+            scripts/backup.sh /tmp/ci.dump
+            createdb -h localhost -U postgres restored
+            scripts/verify_backup.sh /tmp/ci.dump "${DATABASE_URL%/postgres}/restored"
+          '
+
+  image:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - name: Build and start the stack
+        run: docker compose up --build --detach --wait --wait-timeout 180
+      - name: Smoke test
+        run: |
+          curl --fail --silent http://localhost:8000/health/
+          docker compose exec -T api python manage.py seed_demo --password "ci-only-demo-passphrase"
+          token=$(curl --fail --silent -H 'Content-Type: application/json' \
+            -d '{"username":"demo-student-ira","password":"ci-only-demo-passphrase"}' \
+            http://localhost:8000/api/auth/login/ | python3 -c 'import json,sys; print(json.load(sys.stdin)["token"])')
+          curl --fail --silent -H "Authorization: Token $token" http://localhost:8000/api/slots/
+          docker compose exec -T worker python manage.py check_queue
+      - if: failure()
+        run: docker compose logs --no-color
