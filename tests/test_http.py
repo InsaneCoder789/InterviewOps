@@ -1,3 +1,5 @@
+from unittest import mock
+
 from django.test import TestCase, override_settings
 from rest_framework.test import APIClient
 
@@ -71,3 +73,21 @@ class RegistrationAndConfigTests(Factory, TestCase):
              data["slot_max_minutes"], data["reminder_lead_hours"]),
             (2, 15, 180, 24))
         self.assertEqual(client.post("/api/config/").status_code, 405)
+
+
+class ErrorBodyTests(Factory, TestCase):
+    def test_unknown_api_urls_answer_json(self):
+        for url in ("/api/nope/", "/api/slots/abc/", "/api/users/x/role/"):
+            response = APIClient().get(url)
+            self.assertEqual((response.status_code, response.json()), (404, {"detail": "Not found."}), url)
+        self.assertIn("text/html", APIClient().get("/nope/")["Content-Type"])
+
+    def test_crashes_answer_json_without_details(self):
+        client = self.client_for(self.user("student"))
+        client.raise_request_exception = False
+        with mock.patch("accounts.views.UserSerializer.to_representation",
+                        side_effect=RuntimeError("secret detail")):
+            response = client.get("/api/auth/me/")
+        self.assertEqual((response.status_code, response.json()),
+                         (500, {"detail": "Server error."}))
+        self.assertIn("X-Request-ID", response)

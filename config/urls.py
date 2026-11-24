@@ -37,3 +37,7 @@ urlpatterns = [
 ]
 if settings.ENABLE_ADMIN:
     urlpatterns.append(path("admin/", admin.site.urls))
+
+# Used when DEBUG is off.
+handler404 = "config.errors.not_found"
+handler500 = "config.errors.server_error"
