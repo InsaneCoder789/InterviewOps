@@ -46,12 +46,13 @@ class SlotCreateSerializer(serializers.Serializer):
 
 class BookingSerializer(serializers.ModelSerializer):
     student_name = serializers.CharField(source="student.username", read_only=True)
+    mentor = serializers.IntegerField(source="slot.mentor_id", read_only=True)
     mentor_name = serializers.CharField(source="slot.mentor.username", read_only=True)
     topic = serializers.CharField(source="slot.topic", read_only=True)
 
     class Meta:
         model = Booking
-        fields = ["id", "slot", "student", "student_name", "mentor_name", "topic",
+        fields = ["id", "slot", "student", "student_name", "mentor", "mentor_name", "topic",
                   "starts_at", "ends_at", "status", "created_at", "cancelled_at", "cancelled_by"]
         read_only_fields = fields
 
