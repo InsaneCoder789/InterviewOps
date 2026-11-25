@@ -12,6 +12,7 @@ class Notification(models.Model):
         BOOKING_RESCHEDULED = "booking_rescheduled"
         REMINDER = "reminder"
         SESSION_UPDATED = "session_updated"
+        FEEDBACK_READY = "feedback_ready"
         INVITATION = "invitation"
         PASSWORD_RESET = "password_reset"
 
