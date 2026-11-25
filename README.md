@@ -1,33 +1,37 @@
-<h1 align="center">
-  <img src="docs/brand/logo.svg" alt="InterviewOps" width="360">
-</h1>
+<p align="center">
+  <img src="docs/brand/readme-banner.png" alt="InterviewOps: Mock interviews, booked without collisions. Two adjacent time intervals on a timeline." width="100%">
+</p>
+
+<h1 align="center">InterviewOps</h1>
 
 <p align="center"><strong>Mock interviews, booked without collisions.</strong></p>
 
 <p align="center">
-  A Django backend for scheduling mock interviews, where the database itself rejects double-booking.
+  A Django REST API for scheduling mock interviews, built around ordered transactions,<br>
+  PostgreSQL constraints, and a durable database-backed email queue.
 </p>
 
 <p align="center">
-  <a href="https://github.com/InsaneCoder789/InterviewOps/actions/workflows/test.yml"><img src="https://github.com/InsaneCoder789/InterviewOps/actions/workflows/test.yml/badge.svg" alt="test workflow status"></a>
+  <a href="https://github.com/InsaneCoder789/InterviewOps/actions/workflows/test.yml"><img src="https://github.com/InsaneCoder789/InterviewOps/actions/workflows/test.yml/badge.svg" alt="Test workflow status"></a>
   <img src="https://img.shields.io/badge/Python-3.14-3776AB?logo=python&logoColor=white" alt="Python 3.14">
   <img src="https://img.shields.io/badge/Django-5.2-092E20?logo=django&logoColor=white" alt="Django 5.2">
   <img src="https://img.shields.io/badge/PostgreSQL-18-4169E1?logo=postgresql&logoColor=white" alt="PostgreSQL 18">
-  <a href="LICENSE"><img src="https://img.shields.io/badge/licence-MIT-3447D4" alt="MIT licence"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-3447D4" alt="MIT license"></a>
 </p>
 
 <p align="center">
-  <a href="#quickstart">Quickstart</a> ·
-  <a href="#walkthrough">Walkthrough</a> ·
+  <a href="#quickstart">Get started</a> ·
+  <a href="#booking-flow">How it works</a> ·
   <a href="docs/API.md">API reference</a> ·
   <a href="docs/ARCHITECTURE.md">Architecture</a> ·
   <a href="#known-limits">Known limits</a>
 </p>
 
-> **Status:** runs locally. The container image and the Render blueprint have not
-> been built or deployed, and there is no hosted instance.
+> **Project status:** The backend is intended to run locally. The container image
+> and Render blueprint have not been built or deployed, and there is no hosted
+> instance. See [deployment status](#deployment-status) before using them.
 
-## Why it exists
+## The problem
 
 Booking a time slot looks like "check that it is free, then insert a row". Two
 requests can pass that check at the same moment, and both insert.
@@ -39,22 +43,24 @@ that skips the service still cannot book one slot twice. The student-overlap
 rule compares times the service copies from the slot, so it relies on those
 being correct.
 
-## Features
+## What it does
 
-- **Three roles:** students book, mentors publish slots, admins manage both and
-  change roles. Public sign-up always creates a student.
+- **Invite-only community:** an admin invites students and mentors by email;
+  public sign-up is closed outside local development.
+- **Accounts:** profiles, a mentor directory, password change and reset, expiring
+  tokens, and deactivation that cancels future sessions.
 - **Collision-free scheduling:** one active booking per slot, no overlapping
-  slots for a mentor, no overlapping bookings for a student.
-- **Cancellation rules:** a two-hour cutoff for students, and a cancelled
-  booking reopens its slot.
-- **Deactivated accounts:** an inactive mentor's slots cannot be booked, and
-  reminders involving an inactive user are skipped.
-- **Email reminders:** a queue stored in PostgreSQL, with leases, retries and
-  exponential backoff. No message broker.
-- **REST API:** token authentication, pagination, filtering and throttled
-  sign-up and login.
-- **Operations basics:** a database health check and an application log line per
-  request with a request ID.
+  slots for a mentor, no overlapping bookings for a student, including when
+  rescheduling.
+- **Sessions:** a meeting link from the mentor, preparation notes from the
+  student, and attendance.
+- **Feedback:** ratings, strengths, improvements and next steps, with progress
+  over time.
+- **Email:** confirmations, reminders, changes and cancellations through a queue
+  stored in PostgreSQL, with retries. No message broker.
+- **Admin tools:** an overview, delivery records and retry for failed mail.
+- **Operations:** CI, a local Compose stack, backup and restore scripts, health
+  and queue checks.
 
 ## Architecture
 
@@ -63,12 +69,12 @@ flowchart LR
     client["API client"] -->|"JSON + token"| views["DRF views<br/>authenticate, validate, serialise"]
     views -->|"bookings, slots, role changes"| services["scheduling/services.py<br/>transactions and row locks"]
     views -->|"reads and account writes"| db
-    services --> db[("PostgreSQL<br/>data, constraints, reminder queue")]
-    worker["send_reminders worker"] -->|"FOR UPDATE SKIP LOCKED"| db
+    services --> db[("PostgreSQL<br/>data, constraints, email queue")]
+    worker["send_notifications worker"] -->|"FOR UPDATE SKIP LOCKED"| db
     worker -->|"send"| mail["Email backend<br/>console by default, SMTP by setting"]
 ```
 
-The web process and the reminder worker share only the database. More detail is
+The web process and the mail worker share only the database. More detail is
 in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Booking flow
@@ -86,7 +92,7 @@ sequenceDiagram
     A->>A: Check mentor is active, slot is open, upcoming and free
     alt A check fails
         A->>D: ROLLBACK
-        A-->>S: 409 Conflict
+        A-->>S: 404 if the slot is not open, 409 if it is taken
     else Checks pass
         A->>D: INSERT booking
         Note over D: Unique index and exclusion constraint are enforced here
@@ -95,14 +101,15 @@ sequenceDiagram
             A->>D: ROLLBACK
             A-->>S: 409 Conflict
         else Accepted
-            A->>D: INSERT reminder
+            A->>D: INSERT notifications
             A->>D: COMMIT
             A-->>S: 201 Created
         end
     end
 ```
 
-A missing slot returns `404`, and a caller who is not a student gets `403`.
+A slot that is missing, cancelled, started or whose mentor is inactive returns
+`404`. A caller who is not an active student gets `403`.
 
 ## Quickstart
 
@@ -121,21 +128,23 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
-Start the reminder worker in a second terminal, from the same directory:
+Start the mail worker in a second terminal, from the same directory:
 
 ```bash
 source .venv/bin/activate
 export DJANGO_DEBUG=1 DATABASE_URL=postgresql://$(whoami)@localhost:5432/interviewops
-python manage.py send_reminders
+python manage.py send_notifications
 ```
 
 - A user made with `createsuperuser` gets the admin role.
-- `send_reminders --once` processes due reminders and exits.
+- `send_notifications --once` processes due email and exits.
+- `python manage.py seed_demo` adds made-up users and sessions.
+- With Docker, `docker compose up --build` starts everything instead.
 - A migration creates the `btree_gist` extension, so the database user needs
   permission to create it.
 - Django does not read `.env` files here. [`.env.example`](.env.example) lists
   variables to export in your shell.
-- In debug mode, reminder emails are printed to the worker's output by default.
+- In debug mode, emails are printed to the worker's output by default.
 - The Django admin is at `/admin/` in debug mode.
 
 ## Walkthrough
@@ -199,29 +208,18 @@ running the walkthrough twice in a row can return `429`.
 ## API
 
 Send `Authorization: Token <token>`. Times are ISO 8601; the server stores UTC.
-Full request and response examples are in [docs/API.md](docs/API.md).
+[docs/API.md](docs/API.md) is the full reference.
 
-| Method | Path | Who | Purpose |
-|---|---|---|---|
-| POST | `/api/auth/register/` | anyone | create a student account |
-| POST | `/api/auth/login/` | anyone | get a token |
-| POST | `/api/auth/logout/` | signed in | revoke the token |
-| GET | `/api/auth/me/` | signed in | current user |
-| GET | `/api/users/?role=` | admin | list users |
-| PATCH | `/api/users/{id}/role/` | admin | change a role |
-| GET | `/api/slots/` | signed in | list slots visible to your role |
-| GET | `/api/slots/{id}/` | signed in | one visible slot |
-| POST | `/api/slots/` | mentor, admin | publish (admins pass `mentor`) |
-| POST | `/api/slots/{id}/cancel/` | owning mentor, admin | withdraw a slot and its booking |
-| GET | `/api/bookings/` | signed in | own bookings (mentor: on own slots; admin: all) |
-| GET | `/api/bookings/{id}/` | participant, admin | one booking |
-| POST | `/api/bookings/` | student | book, with `{"slot": id}` |
-| POST | `/api/bookings/{id}/cancel/` | participant, admin | cancel |
-| GET | `/health/` | anyone | database check |
+| Area | Endpoints under `/api/` |
+|---|---|
+| Sign-in | `auth/register`, `auth/login`, `auth/logout`, `auth/me`, `auth/accept-invitation`, `auth/password`, `auth/password-reset` |
+| People | `invitations`, `users`, `users/{id}/role`, `users/{id}/status`, `profile`, `users/{id}/profile`, `mentors` |
+| Sessions | `slots`, `bookings`, and per booking `cancel`, `reschedule`, `attendance` |
+| Feedback | `bookings/{id}/feedback`, `feedback`, `feedback/progress` |
+| Admin | `admin/overview`, `notifications` |
+| Client settings | `config` |
 
-Lists accept `page` and `page_size` (default 20, maximum 100). Slots filter by
-`mentor`, `topic`, `available`, `starts_after` and `starts_before`; bookings by
-`status`, `slot`, `starts_after` and `starts_before`.
+`GET /health/` checks the database.
 
 ## Rules
 
@@ -250,8 +248,8 @@ ends at 10:00 does not collide with one that starts at 10:00.
 **A fixed lock order** (user, slot, booking). See
 [the deadlock investigation](docs/investigation-001-deadlock.md).
 
-**Database queue instead of a broker.** The reminder row is written in the same
-transaction as the booking, so neither can be created alone. Workers claim rows
+**Database queue instead of a broker.** Email rows are written in the same
+transaction as the change, so neither can happen alone. Workers claim rows
 with `FOR UPDATE SKIP LOCKED`, take a 5-minute lease, send outside the
 transaction and retry with exponential backoff: the wait doubles from 60 s up to
 a cap of one hour, for 10 attempts in total. At higher volume, or with many task
@@ -270,7 +268,7 @@ python manage.py test tests
 
 The database user needs permission to create the test database.
 
-There are 53 tests, including 9 concurrency tests that use real threads and real
+The suite includes concurrency tests that use real threads and real
 PostgreSQL connections. To check that they can fail, the student lock, the mentor
 lock, the slot lock and `SKIP LOCKED` were each removed in turn, and the
 concurrency suite caught every removal. The student and mentor lock failures come
@@ -278,8 +276,9 @@ from deadlocks that depend on timing, so a single run without either lock can
 still pass. A query-count test pins the slot and booking list endpoints at 3
 queries for 1 or 15 rows.
 
-The [test workflow](.github/workflows/test.yml) runs on pushes and pull requests.
-It checks for missing migrations, then runs the suite against PostgreSQL 18.
+The [test workflow](.github/workflows/test.yml) also checks migrations and
+production settings, restores a backup and builds the container. See
+[docs/OPERATIONS.md](docs/OPERATIONS.md).
 
 ## Deployment status
 
@@ -289,6 +288,7 @@ deployed yet.** If you try them:
 - Check current Render plans and pricing first. The blueprint's background worker
   uses a paid service type.
 - On a custom domain, set `DJANGO_ALLOWED_HOSTS`.
+- Set `APP_BASE_URL` and `CORS_ALLOWED_ORIGINS` for the web app.
 - Configure an email backend and its SMTP variables on the worker. With debug
   off, the worker refuses to start with the console backend.
 - The Django admin is off when debug is off. `ENABLE_ADMIN=1` turns it on.
@@ -306,32 +306,34 @@ included.
 
 ## Known limits
 
-- Reminders are at-least-once: a worker crash after sending can cause a repeat.
-  A cancellation during the send itself can still let that email through.
-- A booking made less than 24 hours ahead gets its reminder immediately, on the
-  worker's next pass.
-- A reminder is marked failed after 10 unsuccessful attempts, which covers a mail
-  outage of roughly four hours.
-- Login and sign-up throttling is counted per web process; use a shared cache to
-  scale out.
-- Tokens do not expire and each user has one; logout revokes it.
-- No email verification, password reset or slot editing.
-- No database constraint ties a booking's times to its slot's times.
-- Cancelled, started and role rules are enforced by the service only.
-- Deactivating a user does not cancel their existing slots or bookings.
+- No web app yet; this repository is the backend.
+- Email is at-least-once: a worker crash after sending can cause a repeat, and a
+  cancellation during a send cannot recall it.
+- A message is marked failed after 10 unsuccessful attempts, roughly four hours
+  of mail outage; an admin can retry it.
+- Email is plain text, with times in UTC.
+- Each user has one token, shared by all their clients.
+- The sign-in rate limit is not atomic.
+- No slot editing, recurring availability, calendar sync, video calls or
+  payments.
+- Cancelled, started and role rules are enforced by the application, not the
+  database.
 - The Django admin login page has no rate limit if the admin is enabled.
-- An unrecognised value for the `available` filter is ignored, not rejected.
-- URLs that match no route, such as `/api/slots/abc/`, do not return a JSON body.
+
+[docs/PRODUCT.md](docs/PRODUCT.md) lists what comes next.
 
 ## Repository layout
 
 ```text
-accounts/            users, roles, authentication endpoints
-scheduling/          slots, bookings, services, reminder queue and worker command
+accounts/            users, invitations, profiles, authentication
+scheduling/          slots, bookings, sessions, services
+notifications/       email queue, worker, delivery records, admin overview
+feedback/            session feedback and progress
 config/              settings, URLs, health check, request logging, pagination
-tests/               API, reminder and concurrency tests
+tests/               API, email and concurrency tests
+scripts/             backup and restore
 docs/                architecture, API reference, investigation notes, brand
-.github/             test workflow, issue and pull request templates
+.github/             test and deploy workflows, templates
 Dockerfile           container image (not yet built)
 render.yaml          Render blueprint (not yet deployed)
 ```
