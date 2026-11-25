@@ -188,7 +188,7 @@ def change_role(*, actor, user_id, role):
     # Lock both rows in primary-key order, then re-check the actor: two admins
     # demoting each other must not both succeed.
     locked = {pk: _lock_user(pk) for pk in sorted({actor.pk, user_id})}
-    if locked[actor.pk].role != User.Role.ADMIN:
+    if locked[actor.pk].role != User.Role.ADMIN or not locked[actor.pk].is_active:
         raise PermissionDenied("Only admins can change roles.")
     user = locked[user_id]
     if user.role == role:
