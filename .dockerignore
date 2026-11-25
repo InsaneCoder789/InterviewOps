@@ -4,6 +4,8 @@ __pycache__/
 .env
 staticfiles/
 .git/
+*.dump
+compose.yaml
 PLAN.md
 website/
 docs/plan/

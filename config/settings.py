@@ -97,6 +97,14 @@ DATABASES = {
 # The admin login page has no rate limit, so it is off in production unless asked for.
 ENABLE_ADMIN = env_bool("ENABLE_ADMIN", DEBUG)
 
+# Throttle counters live in the database so every web process shares one limit.
+CACHES = {
+    "default": {
+        "BACKEND": "django.core.cache.backends.db.DatabaseCache",
+        "LOCATION": "django_cache",
+    }
+}
+
 AUTH_USER_MODEL = "accounts.User"
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": f"django.contrib.auth.password_validation.{name}"}
@@ -121,7 +129,6 @@ REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": ["rest_framework.renderers.JSONRenderer"],
     "DEFAULT_PAGINATION_CLASS": "config.pagination.DefaultPagination",
     "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
-    # Counters live in the per-process cache, so limits are per worker. See README.
     "DEFAULT_THROTTLE_RATES": {"auth": os.environ.get("AUTH_THROTTLE_RATE", "10/min")},
     "NUM_PROXIES": int(os.environ.get("NUM_PROXIES", "0")),
 }
@@ -163,6 +170,9 @@ if not DEBUG:
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_HSTS_SECONDS = 3600
+    # Subdomains and the browser preload list are decisions about a whole domain,
+    # which this project does not own yet.
+    SILENCED_SYSTEM_CHECKS = ["security.W005", "security.W021"]
 
 LOGGING = {
     "version": 1,
