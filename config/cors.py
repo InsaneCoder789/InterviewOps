@@ -4,7 +4,7 @@ from django.utils.cache import patch_vary_headers
 
 PREFIXES = ("/api/", "/health/")
 EXPOSED_HEADERS = "Retry-After, X-Request-ID"
-ALLOWED_METHODS = "GET, POST, PATCH, OPTIONS"
+ALLOWED_METHODS = "GET, POST, PUT, PATCH, OPTIONS"
 ALLOWED_HEADERS = "Authorization, Content-Type"
 
 

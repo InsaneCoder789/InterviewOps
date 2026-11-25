@@ -52,6 +52,11 @@ class Booking(models.Model):
         BOOKED = "booked"
         CANCELLED = "cancelled"
 
+    class Attendance(models.TextChoices):
+        COMPLETED = "completed"
+        STUDENT_ABSENT = "student_absent"
+        MENTOR_ABSENT = "mentor_absent"
+
     slot = models.ForeignKey(Slot, models.PROTECT, related_name="bookings")
     student = models.ForeignKey(settings.AUTH_USER_MODEL, models.PROTECT, related_name="bookings")
     # Copied from the slot (slot times are immutable) so the database can reject
@@ -63,6 +68,14 @@ class Booking(models.Model):
     cancelled_at = models.DateTimeField(null=True, blank=True)
     cancelled_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, models.PROTECT, null=True, blank=True, related_name="+"
+    )
+    # Supplied by the mentor; this project does not host calls.
+    meeting_link = models.URLField(max_length=500, blank=True)
+    preparation_notes = models.TextField(max_length=2000, blank=True)
+    # Empty until someone records what happened after the start time.
+    attendance = models.CharField(max_length=16, choices=Attendance.choices, blank=True)
+    rescheduled_from = models.OneToOneField(
+        "self", models.PROTECT, null=True, blank=True, related_name="rescheduled_to"
     )
 
     class Meta:

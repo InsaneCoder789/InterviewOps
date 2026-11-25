@@ -11,7 +11,8 @@ from .models import Notification
 Kind = Notification.Kind
 UNSENT = [Notification.Status.PENDING, Notification.Status.SENDING]
 # Notices that stop making sense once a booking is cancelled.
-LIVE_BOOKING_KINDS = [Kind.BOOKING_CONFIRMED, Kind.BOOKING_RESCHEDULED, Kind.REMINDER]
+LIVE_BOOKING_KINDS = [Kind.BOOKING_CONFIRMED, Kind.BOOKING_RESCHEDULED, Kind.REMINDER,
+                      Kind.SESSION_UPDATED]
 
 
 def enqueue(kind, *, at=None, **links):
@@ -41,3 +42,11 @@ def booking_cancelled(booking):
     withdraw(booking)
     for user_id in _participants(booking):
         enqueue(Kind.BOOKING_CANCELLED, booking=booking, recipient_id=user_id)
+
+
+def session_updated(booking):
+    """Tell the student about a new meeting link, replacing any unsent notice."""
+    Notification.objects.filter(
+        booking=booking, kind=Kind.SESSION_UPDATED, status__in=UNSENT
+    ).update(status=Notification.Status.SKIPPED)
+    enqueue(Kind.SESSION_UPDATED, booking=booking, recipient_id=booking.student_id)
