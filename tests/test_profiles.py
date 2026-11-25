@@ -1,4 +1,5 @@
 from django.test import TestCase
+from rest_framework.exceptions import PermissionDenied
 
 from accounts.models import Profile, User
 from scheduling import services
@@ -102,3 +103,9 @@ class AccountStatusTests(Factory, TestCase):
         self.assertEqual(self.set_active(self.m, False, actor=self.student).status_code, 403)
         response = self.client_for(self.admin).patch(f"/api/users/{self.m.pk}/status/", {})
         self.assertEqual(response.status_code, 400)
+
+    def test_a_request_already_in_flight_cannot_book_after_deactivation(self):
+        stale = User.objects.get(pk=self.student.pk)  # authenticated before the change
+        self.set_active(self.student, False)
+        with self.assertRaisesMessage(PermissionDenied, "active students"):
+            services.book_slot(student=stale, slot_id=self.open.pk)
