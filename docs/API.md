@@ -5,16 +5,22 @@ hosted instance. IDs, tokens and times are illustrative.
 
 - [Conventions](#conventions)
 - [Accounts](#accounts)
+- [Invitations and passwords](#invitations-and-passwords)
 - [Users](#users)
+- [Profiles](#profiles)
 - [Slots](#slots)
 - [Bookings](#bookings)
+- [Feedback](#feedback)
+- [Admin tools](#admin-tools)
+- [Emails](#emails)
 - [Client settings](#client-settings)
 - [Health](#health)
 
 ## Conventions
 
 **Authentication.** Send `Authorization: Token <token>` on every endpoint except
-register, login, client settings and health. A token lasts 12 hours by default
+register, accept-invitation, password reset, login, client
+settings and health. A token lasts 12 hours by default
 (`TOKEN_TTL_HOURS`), counted from when it was created. After that it returns `401`
 `{"detail": "Token has expired."}`.
 
@@ -79,6 +85,23 @@ on the code, not the message:
 | `slot_started` | cancelling a slot |
 | `own_role` | changing a role |
 | `role_has_commitments` | changing a role |
+| `own_status` | changing your own account status |
+| `email_in_use` | inviting an address that has an account |
+| `invitation_in_progress` | two invitations for one address at once |
+| `invitation_accepted` | revoking a used invitation |
+| `same_slot` | rescheduling into the current slot |
+| `student_unavailable` | rescheduling for an inactive or ex-student |
+| `session_ended` | editing session details afterwards |
+| `session_not_started` | attendance or feedback too early |
+| `feedback_exists` | marking a session with feedback as missed |
+| `session_missed` | feedback on a missed session |
+| `feedback_locked` | revising feedback after the window |
+| `not_failed` | retrying a message that has not failed |
+
+Rescheduling can also return `cancel_cutoff`, `session_started`,
+`booking_already_cancelled`, `slot_already_booked` and `student_overlap`.
+`400` bodies for bad links carry the code `invalid_invitation` or
+`invalid_reset_link`.
 
 The `409` examples below show `detail` only. A closed sign-up returns `403` with
 the code `registration_closed`.
@@ -100,8 +123,8 @@ and `415` responses apply across endpoints and are not repeated below.
 
 ## Accounts
 
-Register and login share one throttle: 10 requests per minute per client address,
-counted per web process. A throttled request returns `429` with a `Retry-After`
+Sign-up, login, invitation and password endpoints share one throttle: 10 requests
+per minute per client address. A throttled request returns `429` with a `Retry-After`
 header:
 
 ```json
@@ -198,6 +221,31 @@ Signed in.
 
 Statuses: `200`, `401`.
 
+## Invitations and passwords
+
+Links point at `APP_BASE_URL`, with their secrets after `#`:
+`/accept-invitation#token=...` and `/reset-password#uid=...&token=...`. The client
+reads them from the fragment and posts them. The endpoints marked throttled share
+the sign-up and login limit.
+
+| Method and path | Who | Body | Success |
+|---|---|---|---|
+| `GET /api/invitations/` | admin | | `200`, paginated |
+| `POST /api/invitations/` | admin | `email`, `role` | `201` invitation |
+| `POST /api/invitations/{id}/revoke/` | admin | | `200` invitation |
+| `POST /api/auth/accept-invitation/` | anyone, throttled | `token`, `username`, `password` | `201` user |
+| `POST /api/auth/password-reset/` | anyone, throttled | `email` | `202`, the same for any address |
+| `POST /api/auth/password-reset/confirm/` | anyone, throttled | `uid`, `token`, `password` | `204` |
+| `POST /api/auth/password/` | signed in, throttled | `current_password`, `new_password` | `200` new `token`, `expires_at` |
+
+An invitation has `id, email, role, status, invited_by, created_at, expires_at,
+accepted_at, accepted_by, revoked_at`; `status` is `pending`, `accepted`,
+`revoked` or `expired`. It lasts 7 days and works once. Inviting an address again
+replaces the open invitation. Accepting works while public sign-up is closed.
+
+A reset link lasts one hour and stops working once the password changes. Both
+password operations revoke the old API token.
+
 ## Users
 
 ### GET /api/users/
@@ -231,6 +279,13 @@ Admin. Paginated, ordered by ID.
 
 Statuses: `200`, `400`, `401`, `403`, `404`.
 
+### PATCH /api/users/{id}/status/
+
+Admin. `{"is_active": false}` deactivates: the person is signed out, and their
+future slots and bookings are cancelled with notices to the other participant.
+Sessions already started are left alone. `true` restores access, not sessions.
+Returns the user. Statuses: `200`, `400`, `401`, `403`, `404`, `409`.
+
 ### PATCH /api/users/{id}/role/
 
 Admin.
@@ -262,6 +317,26 @@ The last applies while the user has an active slot or booking that has not ended
 Moving a user out of the admin role also removes their Django admin access.
 
 Statuses: `200`, `400`, `401`, `403`, `404`, `409`.
+
+## Profiles
+
+A profile: `user, username, role, display_name, headline, bio, experience_level,
+target_roles, topics, timezone`. It never includes an email address.
+
+| Method and path | Who | Notes |
+|---|---|---|
+| `GET /api/profile/` | signed in | own; empty until saved |
+| `PATCH /api/profile/` | signed in | any of the editable fields |
+| `GET /api/users/{id}/profile/` | see below | otherwise `404` |
+| `GET /api/mentors/` | signed in | active mentors, paginated; `topic` (exact, ignoring case), `search` (username or display name) |
+
+Anyone signed in may read their own and any active mentor's profile; a mentor may
+read an active student who has booked them; admins read all.
+
+`experience_level` is `student`, `entry`, `mid`, `senior` or empty. `timezone` is
+an IANA name. `topics` and `target_roles` hold up to 15 entries of 60 characters,
+stored trimmed, in lower case and without repeats. `display_name` is up to 80
+characters, `headline` 120, `bio` 2000.
 
 ## Slots
 
@@ -376,7 +451,7 @@ Statuses: `201`, `400`, `401`, `403`, `409`.
 ### POST /api/slots/{id}/cancel/
 
 The owning mentor, or an admin. No body. Cancels the slot and its active booking,
-and skips that booking's unsent reminder. No cancellation email is sent.
+and withdraws unsent notices about that booking. Both participants are emailed.
 
 `204 No Content`
 
@@ -407,7 +482,11 @@ A booking object:
   "status": "booked",
   "created_at": "2026-11-27T08:15:30.124000Z",
   "cancelled_at": null,
-  "cancelled_by": null
+  "cancelled_by": null,
+  "meeting_link": "",
+  "preparation_notes": "",
+  "attendance": "",
+  "rescheduled_from": null
 }
 ```
 
@@ -464,7 +543,7 @@ POST /api/bookings/
 {"slot": 1}
 ```
 
-`201 Created` with the booking object. A reminder is queued in the same
+`201 Created` with the booking object. Confirmations and reminders are queued in the same
 transaction.
 
 | Status | Body |
@@ -486,7 +565,7 @@ Statuses: `201`, `400`, `401`, `403`, `404`, `409`.
 ### POST /api/bookings/{id}/cancel/
 
 The booking's student, the slot's mentor, or an admin. No body. The slot becomes
-bookable again and an unsent reminder is skipped.
+bookable again, unsent notices are withdrawn and both participants are emailed.
 
 `200 OK`
 
@@ -504,7 +583,11 @@ bookable again and an unsent reminder is skipped.
   "status": "cancelled",
   "created_at": "2026-11-27T08:15:30.124000Z",
   "cancelled_at": "2026-11-27T09:00:00.512000Z",
-  "cancelled_by": 3
+  "cancelled_by": 3,
+  "meeting_link": "",
+  "preparation_notes": "",
+  "attendance": "",
+  "rescheduled_from": null
 }
 ```
 
@@ -516,6 +599,80 @@ bookable again and an unsent reminder is skipped.
 | 409 | `{"detail": "Students cannot cancel less than 2 hours before the session."}` |
 
 Statuses: `200`, `401`, `404`, `409`.
+
+### POST /api/bookings/{id}/reschedule/
+
+The student or an admin. `{"slot": id}`. Cancels this booking and creates a new
+one in one transaction, or changes nothing. `201` with the new booking, whose
+`rescheduled_from` is the old ID. Preparation notes carry over; the meeting link
+only if the mentor is the same. Students need the usual 2 hours' notice. The
+mentor gets `403`; others `404`. An unavailable target slot is `404`.
+
+### PATCH /api/bookings/{id}/
+
+| Field | Who | Rules |
+|---|---|---|
+| `meeting_link` | the mentor or an admin | `https://` only, up to 500 characters, or empty |
+| `preparation_notes` | the student or an admin | up to 2000 characters |
+
+Send at least one. Allowed while booked and until the session ends. A new link is
+emailed to the student. `200` with the booking.
+
+### POST /api/bookings/{id}/attendance/
+
+The mentor or an admin, after the start. `{"attendance": "completed"}`, or
+`student_absent` or `mentor_absent`. `200` with the booking.
+
+## Feedback
+
+A feedback object: `id, booking, student, mentor, mentor_name, topic,
+session_starts_at, communication, problem_solving, technical, strengths,
+improvements, next_steps, created_at, updated_at`.
+
+| Method and path | Who | Notes |
+|---|---|---|
+| `PUT /api/bookings/{id}/feedback/` | the session's mentor | `201` first time, `200` after |
+| `GET /api/bookings/{id}/feedback/` | student, mentor, admin | `404` if none or not yours |
+| `GET /api/feedback/` | signed in | own, written, or all; filters `student`, `mentor` |
+| `GET /api/feedback/progress/` | signed in | students get their own; others pass `?student=id` |
+
+All three ratings are whole numbers from 1 to 5; the three texts are required, up
+to 4000 characters. Feedback needs a booked session that has started and is not
+marked missed; saving it marks the session completed. It can be revised for 7
+days. The student is emailed that it is ready, without the comments.
+
+Progress returns `student`, `sessions`, `averages`, `history` (the latest 20,
+oldest first) and `latest_next_steps`. A mentor's view covers only their sessions.
+
+## Admin tools
+
+All admin only.
+
+`GET /api/admin/overview/` returns `active_users` by role, `pending_invitations`,
+`open_slots`, `upcoming_sessions`, `upcoming_without_link`,
+`completed_sessions`, `missed_sessions`, `awaiting_feedback` and
+`notifications` (`failed`, `due`, `oldest_due_seconds`).
+
+`GET /api/notifications/` lists messages, newest first, with filters `status` and
+`kind`: `id, kind, status, recipient, email, booking, invitation, attempts,
+available_at, sent_at, last_error, created_at`.
+
+`POST /api/notifications/{id}/retry/` queues a failed message again.
+
+## Emails
+
+Sent by the `send_notifications` worker, as plain text with times in UTC.
+
+| Kind | To | When |
+|---|---|---|
+| `booking_confirmed` | student and mentor | on booking |
+| `reminder` | student and mentor | 24 hours before, or at once for a later booking |
+| `booking_rescheduled` | student and new mentor | on rescheduling; a replaced mentor gets a cancellation |
+| `booking_cancelled` | student and mentor | on cancellation; deactivated users get nothing |
+| `session_updated` | student | a meeting link is set |
+| `feedback_ready` | student | first feedback |
+| `invitation` | the invited address | on invitation |
+| `password_reset` | the account | on request |
 
 ## Client settings
 
@@ -530,7 +687,8 @@ Anyone. The rules a client needs before it has a token.
   "student_cancellation_cutoff_hours": 2,
   "reminder_lead_hours": 24,
   "slot_min_minutes": 15,
-  "slot_max_minutes": 180
+  "slot_max_minutes": 180,
+  "feedback_edit_days": 7
 }
 ```
 
