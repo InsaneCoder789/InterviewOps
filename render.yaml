@@ -9,6 +9,7 @@ services:
     name: interviewops-api
     runtime: docker
     plan: free
+    autoDeploy: false # deployed by .github/workflows/deploy.yml
     healthCheckPath: /health/
     envVars:
       - key: DATABASE_URL
@@ -25,6 +26,7 @@ services:
     name: interviewops-worker
     runtime: docker
     plan: starter
+    autoDeploy: false
     dockerCommand: python manage.py send_notifications
     envVars:
       - key: DATABASE_URL
