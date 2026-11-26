@@ -1,11 +1,11 @@
-.venv/
-__pycache__/
-*.pyc
-.env
-staticfiles/
-.git/
-*.dump
-compose.yaml
-PLAN.md
-website/
-docs/plan/
+# Send only what the running service needs, so nothing local can slip into the image.
+*
+!manage.py
+!requirements.txt
+!config/
+!accounts/
+!scheduling/
+!notifications/
+!feedback/
+**/__pycache__
+**/*.pyc
