@@ -17,17 +17,25 @@ from .base import PASSWORD, Factory
 class AuthTests(Factory, TestCase):
     def test_register_login_logout(self):
         client = APIClient()
-        response = client.post("/api/auth/register/", {
-            "username": "newbie", "email": "New@Example.Test", "password": PASSWORD,
-            "role": "admin", "is_staff": True,
-        })
+        response = client.post(
+            "/api/auth/register/",
+            {
+                "username": "newbie",
+                "email": "New@Example.Test",
+                "password": PASSWORD,
+                "role": "admin",
+                "is_staff": True,
+            },
+        )
         self.assertEqual(response.status_code, 201, response.data)
         user = User.objects.get(username="newbie")
-        self.assertEqual((user.role, user.is_staff, user.email),
-                         ("student", False, "new@example.test"))
+        self.assertEqual(
+            (user.role, user.is_staff, user.email), ("student", False, "new@example.test")
+        )
         self.assertNotIn("password", response.data)
 
-        token = client.post("/api/auth/login/", {"username": "newbie", "password": PASSWORD}).data["token"]
+        login = {"username": "newbie", "password": PASSWORD}
+        token = client.post("/api/auth/login/", login).data["token"]
         client.credentials(HTTP_AUTHORIZATION=f"Token {token}")
         self.assertEqual(client.get("/api/auth/me/").data["role"], "student")
         self.assertEqual(client.post("/api/auth/logout/").status_code, 204)
@@ -44,16 +52,22 @@ class AuthTests(Factory, TestCase):
 
     def test_login_is_throttled(self):
         client = APIClient()
-        codes = [client.post("/api/auth/login/", {"username": "x", "password": "y"}).status_code
-                 for _ in range(11)]
+        codes = [
+            client.post("/api/auth/login/", {"username": "x", "password": "y"}).status_code
+            for _ in range(11)
+        ]
         self.assertEqual(codes[-1], 429)
 
     def test_anonymous_requests_rejected(self):
         client = APIClient()
         for method, url in (
-            ("get", "/api/slots/"), ("post", "/api/slots/"), ("get", "/api/bookings/"),
-            ("post", "/api/bookings/"), ("post", "/api/bookings/1/cancel/"),
-            ("post", "/api/slots/1/cancel/"), ("get", "/api/users/"),
+            ("get", "/api/slots/"),
+            ("post", "/api/slots/"),
+            ("get", "/api/bookings/"),
+            ("post", "/api/bookings/"),
+            ("post", "/api/bookings/1/cancel/"),
+            ("post", "/api/slots/1/cancel/"),
+            ("get", "/api/users/"),
         ):
             self.assertEqual(getattr(client, method)(url).status_code, 401, url)
 
@@ -84,32 +98,40 @@ class PermissionTests(Factory, TestCase):
             client = self.client_for(user)
             self.assertEqual(client.get(f"/api/bookings/{self.booking.pk}/").status_code, 404)
             self.assertEqual(
-                client.post(f"/api/bookings/{self.booking.pk}/cancel/").status_code, 404)
+                client.post(f"/api/bookings/{self.booking.pk}/cancel/").status_code, 404
+            )
             self.assertEqual(client.get("/api/bookings/").data["count"], 0)
         self.assertEqual(Booking.objects.get(pk=self.booking.pk).status, "booked")
 
     def test_participants_and_admin_can_see_a_booking(self):
         for user in (self.student, self.owner_mentor, self.admin):
             self.assertEqual(
-                self.client_for(user).get(f"/api/bookings/{self.booking.pk}/").status_code, 200)
+                self.client_for(user).get(f"/api/bookings/{self.booking.pk}/").status_code, 200
+            )
 
     def test_mentor_cannot_act_for_another_mentor(self):
         client = self.client_for(self.other_mentor)
         start = timezone.now() + timedelta(days=5)
-        response = client.post("/api/slots/", {
-            "mentor": self.owner_mentor.pk, "topic": "x",
-            "starts_at": start.isoformat(), "ends_at": (start + timedelta(hours=1)).isoformat(),
-        })
+        response = client.post(
+            "/api/slots/",
+            {
+                "mentor": self.owner_mentor.pk,
+                "topic": "x",
+                "starts_at": start.isoformat(),
+                "ends_at": (start + timedelta(hours=1)).isoformat(),
+            },
+        )
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(
-            client.post(f"/api/slots/{self.open_slot.pk}/cancel/").status_code, 404)
+        self.assertEqual(client.post(f"/api/slots/{self.open_slot.pk}/cancel/").status_code, 404)
 
     def test_only_admin_changes_roles(self):
         url = f"/api/users/{self.intruder.pk}/role/"
         self.assertEqual(
-            self.client_for(self.intruder).patch(url, {"role": "admin"}).status_code, 403)
+            self.client_for(self.intruder).patch(url, {"role": "admin"}).status_code, 403
+        )
         self.assertEqual(
-            self.client_for(self.admin).patch(url, {"role": "mentor"}).data["role"], "mentor")
+            self.client_for(self.admin).patch(url, {"role": "mentor"}).data["role"], "mentor"
+        )
 
     def test_role_change_blocked_by_upcoming_commitments(self):
         client = self.client_for(self.admin)
@@ -126,8 +148,10 @@ class SlotAndBookingTests(Factory, TestCase):
         self.client = self.client_for(self.student)
 
     def publish(self, user, start, end, **extra):
-        return self.client_for(user).post("/api/slots/", {
-            "topic": "DSA", "starts_at": start.isoformat(), "ends_at": end.isoformat(), **extra})
+        return self.client_for(user).post(
+            "/api/slots/",
+            {"topic": "DSA", "starts_at": start.isoformat(), "ends_at": end.isoformat(), **extra},
+        )
 
     def test_publish_validation_and_overlap(self):
         start = timezone.now() + timedelta(days=2)
@@ -158,22 +182,29 @@ class SlotAndBookingTests(Factory, TestCase):
         self.assertEqual(cancelled.data["cancelled_by"], self.student.pk)
         self.assertEqual(other.post("/api/bookings/", {"slot": slot.pk}).status_code, 201)
         self.assertEqual(
-            self.client.post(f"/api/bookings/{first.data['id']}/cancel/").status_code, 409)
+            self.client.post(f"/api/bookings/{first.data['id']}/cancel/").status_code, 409
+        )
 
     def test_student_overlap_rejected_but_back_to_back_allowed(self):
         a = self.slot(self.m, hours=48)
         other = self.mentor("m2")
         overlapping = services.publish_slot(
-            mentor_id=other.pk, topic="x",
-            starts_at=a.starts_at + timedelta(minutes=30), ends_at=a.ends_at)
+            mentor_id=other.pk,
+            topic="x",
+            starts_at=a.starts_at + timedelta(minutes=30),
+            ends_at=a.ends_at,
+        )
         adjacent = services.publish_slot(
-            mentor_id=other.pk, topic="x",
-            starts_at=a.ends_at, ends_at=a.ends_at + timedelta(minutes=20))
+            mentor_id=other.pk,
+            topic="x",
+            starts_at=a.ends_at,
+            ends_at=a.ends_at + timedelta(minutes=20),
+        )
         self.assertEqual(self.client.post("/api/bookings/", {"slot": a.pk}).status_code, 201)
         self.assertEqual(
-            self.client.post("/api/bookings/", {"slot": overlapping.pk}).status_code, 409)
-        self.assertEqual(
-            self.client.post("/api/bookings/", {"slot": adjacent.pk}).status_code, 201)
+            self.client.post("/api/bookings/", {"slot": overlapping.pk}).status_code, 409
+        )
+        self.assertEqual(self.client.post("/api/bookings/", {"slot": adjacent.pk}).status_code, 201)
 
     def test_unbookable_slots(self):
         self.assertEqual(self.client.post("/api/bookings/", {"slot": 999999}).status_code, 404)
@@ -205,22 +236,34 @@ class SlotAndBookingTests(Factory, TestCase):
         booking.refresh_from_db()
         self.assertEqual((booking.status, booking.cancelled_by), ("cancelled", self.m))
         self.assertEqual(
-            set(booking.notifications.exclude(kind="booking_cancelled")
-                .values_list("status", flat=True)), {"skipped"})
+            set(
+                booking.notifications.exclude(kind="booking_cancelled").values_list(
+                    "status", flat=True
+                )
+            ),
+            {"skipped"},
+        )
         self.assertEqual(self.client.get("/api/slots/").data["count"], 0)
         self.assertEqual(self.client.post("/api/bookings/", {"slot": slot.pk}).status_code, 404)
         self.assertEqual(mentor.post(f"/api/slots/{slot.pk}/cancel/").status_code, 409)
         # The mentor can publish over the withdrawn time again.
-        services.publish_slot(mentor_id=self.m.pk, topic="x",
-                              starts_at=slot.starts_at, ends_at=slot.ends_at)
+        services.publish_slot(
+            mentor_id=self.m.pk, topic="x", starts_at=slot.starts_at, ends_at=slot.ends_at
+        )
 
     def test_database_rejects_double_booking_without_the_service(self):
         slot = self.slot(self.m)
         services.book_slot(student=self.student, slot_id=slot.pk)
-        with self.assertRaisesMessage(IntegrityError, "booking_one_active_per_slot"):
-            with transaction.atomic():
-                Booking.objects.create(slot=slot, student=self.user("other"),
-                                       starts_at=slot.starts_at, ends_at=slot.ends_at)
+        with (
+            self.assertRaisesMessage(IntegrityError, "booking_one_active_per_slot"),
+            transaction.atomic(),
+        ):
+            Booking.objects.create(
+                slot=slot,
+                student=self.user("other"),
+                starts_at=slot.starts_at,
+                ends_at=slot.ends_at,
+            )
 
 
 class ConstraintTests(Factory, TestCase):
@@ -228,19 +271,25 @@ class ConstraintTests(Factory, TestCase):
 
     def test_database_rejects_overlapping_slots_for_a_mentor(self):
         slot = self.slot(self.mentor())
-        with self.assertRaisesMessage(IntegrityError, "slot_no_mentor_overlap"):
-            with transaction.atomic():
-                Slot.objects.create(mentor=slot.mentor, topic="x",
-                                    starts_at=slot.starts_at, ends_at=slot.ends_at)
+        with (
+            self.assertRaisesMessage(IntegrityError, "slot_no_mentor_overlap"),
+            transaction.atomic(),
+        ):
+            Slot.objects.create(
+                mentor=slot.mentor, topic="x", starts_at=slot.starts_at, ends_at=slot.ends_at
+            )
 
     def test_database_rejects_overlapping_bookings_for_a_student(self):
         student = self.user("student")
         first, second = self.slot(self.mentor("m1")), self.slot(self.mentor("m2"))
         services.book_slot(student=student, slot_id=first.pk)
-        with self.assertRaisesMessage(IntegrityError, "booking_no_student_overlap"):
-            with transaction.atomic():
-                Booking.objects.create(slot=second, student=student,
-                                       starts_at=first.starts_at, ends_at=first.ends_at)
+        with (
+            self.assertRaisesMessage(IntegrityError, "booking_no_student_overlap"),
+            transaction.atomic(),
+        ):
+            Booking.objects.create(
+                slot=second, student=student, starts_at=first.starts_at, ends_at=first.ends_at
+            )
 
 
 class RegressionTests(Factory, TestCase):

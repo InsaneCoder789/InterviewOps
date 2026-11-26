@@ -1,6 +1,7 @@
 from datetime import timedelta
 
 from django.core.cache import cache
+from django.db import transaction
 from django.utils import timezone
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APIClient
@@ -26,17 +27,22 @@ class Factory:
     def slot(self, mentor, hours=48, length=1, topic="System design"):
         start = timezone.now().replace(microsecond=0) + timedelta(hours=hours)
         return services.publish_slot(
-            mentor_id=mentor.pk, topic=topic,
-            starts_at=start, ends_at=start + timedelta(hours=length),
+            mentor_id=mentor.pk,
+            topic=topic,
+            starts_at=start,
+            ends_at=start + timedelta(hours=length),
         )
 
     def client_for(self, user):
         client = APIClient()
-        client.credentials(HTTP_AUTHORIZATION=f"Token {Token.objects.get_or_create(user=user)[0].key}")
+        token, _ = Token.objects.get_or_create(user=user)
+        client.credentials(HTTP_AUTHORIZATION=f"Token {token.key}")
         return client
 
     def move(self, slot, start, length=timedelta(hours=1)):
         """Put a session at any time, including the past, keeping its bookings in step."""
         pk = getattr(slot, "pk", slot)
-        Slot.objects.filter(pk=pk).update(starts_at=start, ends_at=start + length)
-        Booking.objects.filter(slot_id=pk).update(starts_at=start, ends_at=start + length)
+        # Together, because the database checks that they agree when this commits.
+        with transaction.atomic():
+            Slot.objects.filter(pk=pk).update(starts_at=start, ends_at=start + length)
+            Booking.objects.filter(slot_id=pk).update(starts_at=start, ends_at=start + length)

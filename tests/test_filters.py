@@ -27,10 +27,12 @@ class CommitmentFilterTests(Factory, TestCase):
         return [row["id"] for row in response.data["results"]]
 
     def test_admin_finds_one_users_bookings(self):
-        self.assertEqual(self.ids(self.admin, "/api/bookings/", student=self.s1.pk),
-                         [self.first.pk])
-        self.assertEqual(self.ids(self.admin, "/api/bookings/", mentor=self.m2.pk),
-                         [self.second.pk])
+        self.assertEqual(
+            self.ids(self.admin, "/api/bookings/", student=self.s1.pk), [self.first.pk]
+        )
+        self.assertEqual(
+            self.ids(self.admin, "/api/bookings/", mentor=self.m2.pk), [self.second.pk]
+        )
 
     def test_filters_cannot_widen_what_a_role_sees(self):
         self.assertEqual(self.ids(self.s1, "/api/bookings/", student=self.s2.pk), [])
@@ -53,9 +55,12 @@ class CommitmentFilterTests(Factory, TestCase):
     def test_malformed_values_are_refused_not_ignored(self):
         client = self.client_for(self.admin)
         for url in (
-            "/api/slots/?available=ture", "/api/slots/?cancelled=maybe",
-            "/api/slots/?mentor=1.5", "/api/slots/?mentor=-1",
-            "/api/bookings/?student=abc", f"/api/bookings/?slot={10**30}",
+            "/api/slots/?available=ture",
+            "/api/slots/?cancelled=maybe",
+            "/api/slots/?mentor=1.5",
+            "/api/slots/?mentor=-1",
+            "/api/bookings/?student=abc",
+            f"/api/bookings/?slot={10**30}",
         ):
             self.assertEqual(client.get(url).status_code, 400, url)
 
@@ -66,7 +71,8 @@ class CommitmentFilterTests(Factory, TestCase):
     def test_ordering_both_ways_with_id_as_tie_break(self):
         tie = self.slot(self.m1, hours=60)
         Slot.objects.filter(pk=tie.pk).update(
-            starts_at=self.b.starts_at, ends_at=self.b.ends_at, mentor=self.m1)
+            starts_at=self.b.starts_at, ends_at=self.b.ends_at, mentor=self.m1
+        )
         expected = [self.a.pk, self.b.pk, tie.pk]
         self.assertEqual(self.ids(self.admin, "/api/slots/", ordering="starts_at"), expected)
         newest = [
@@ -76,11 +82,13 @@ class CommitmentFilterTests(Factory, TestCase):
         self.assertEqual(newest, expected[::-1])
         self.assertEqual(
             self.ids(self.admin, "/api/bookings/", ordering="-starts_at"),
-            [self.second.pk, self.first.pk])
+            [self.second.pk, self.first.pk],
+        )
 
     def test_other_ordering_fields_are_ignored(self):
-        self.assertEqual(self.ids(self.admin, "/api/slots/", ordering="-topic,mentor"),
-                         [self.a.pk, self.b.pk])
+        self.assertEqual(
+            self.ids(self.admin, "/api/slots/", ordering="-topic,mentor"), [self.a.pk, self.b.pk]
+        )
 
 
 class UserDirectoryTests(Factory, TestCase):
