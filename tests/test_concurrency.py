@@ -17,7 +17,6 @@ from django.utils import timezone
 from notifications import delivery
 from notifications.models import Notification
 from scheduling import services
-from scheduling.exceptions import Conflict
 from scheduling.models import Booking, Slot
 
 from .base import Factory
@@ -47,9 +46,9 @@ class ConcurrencyTests(Factory, TransactionTestCase):
     def test_many_students_one_slot(self):
         slot = self.slot(self.mentor())
         students = [self.user(f"s{i}") for i in range(12)]
-        result = race(*[
-            lambda s=s: services.book_slot(student=s, slot_id=slot.pk) for s in students
-        ])
+        result = race(
+            *[lambda s=s: services.book_slot(student=s, slot_id=slot.pk) for s in students]
+        )
         self.assertEqual(result, {"ok": 1, "Conflict": 11})
         self.assertEqual(Booking.objects.filter(status="booked").count(), 1)
         # One confirmation and one reminder for each of the two participants.
@@ -129,12 +128,12 @@ class ConcurrencyTests(Factory, TransactionTestCase):
 
     def test_worker_skips_a_message_locked_by_another(self):
         services.book_slot(student=self.user("s"), slot_id=self.slot(self.mentor()).pk)
-        Notification.objects.exclude(
-            pk=Notification.objects.order_by("id").first().pk).delete()
+        Notification.objects.exclude(pk=Notification.objects.order_by("id").first().pk).delete()
         locked, release = threading.Event(), threading.Event()
 
         def holder():
             from django.db import transaction
+
             try:
                 with transaction.atomic():
                     list(Notification.objects.select_for_update())
@@ -176,13 +175,15 @@ class ConcurrencyTests(Factory, TransactionTestCase):
             booking = services.book_slot(student=student, slot_id=old.pk)
             result = race(
                 lambda: services.reschedule_booking(
-                    actor=student, booking_id=booking.pk, slot_id=new.pk),
+                    actor=student, booking_id=booking.pk, slot_id=new.pk
+                ),
                 lambda: services.book_slot(student=rival, slot_id=new.pk),
                 lambda: services.cancel_booking(actor=mentor, booking_id=booking.pk),
             )
             self.assertNotIn("OperationalError", result, f"round {i}: {result}")
             self.assertLessEqual(
-                Booking.objects.filter(student=student, status="booked").count(), 1)
+                Booking.objects.filter(student=student, status="booked").count(), 1
+            )
             self.assertEqual(Booking.objects.filter(slot=new, status="booked").count(), 1, i)
 
     def test_two_students_swapping_slots_do_not_deadlock(self):
@@ -193,10 +194,8 @@ class ConcurrencyTests(Factory, TransactionTestCase):
             one = services.book_slot(student=a, slot_id=first.pk)
             two = services.book_slot(student=b, slot_id=second.pk)
             result = race(
-                lambda: services.reschedule_booking(
-                    actor=a, booking_id=one.pk, slot_id=second.pk),
-                lambda: services.reschedule_booking(
-                    actor=b, booking_id=two.pk, slot_id=first.pk),
+                lambda: services.reschedule_booking(actor=a, booking_id=one.pk, slot_id=second.pk),
+                lambda: services.reschedule_booking(actor=b, booking_id=two.pk, slot_id=first.pk),
             )
             # Each target is occupied, so both are refused, and neither hangs.
             self.assertEqual(result, {"Conflict": 2}, f"round {i}")

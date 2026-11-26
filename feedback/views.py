@@ -51,7 +51,8 @@ class BookingFeedbackView(APIView):
         serializer = FeedbackSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         feedback, created = services.save_feedback(
-            actor=request.user, booking_id=pk, values=serializer.validated_data)
+            actor=request.user, booking_id=pk, values=serializer.validated_data
+        )
         return Response(
             FeedbackSerializer(feedback).data,
             status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
@@ -72,25 +73,26 @@ class ProgressView(APIView):
             student = int(value)
         # A mentor sees only the sessions they ran.
         rows = visible_feedback(user).filter(booking__student_id=student)
-        totals = rows.aggregate(
-            sessions=Count("id"), **{name: Avg(name) for name in RATINGS})
-        recent = rows.order_by("-booking__starts_at", "-id")[:20]
-        return Response({
-            "student": student,
-            "sessions": totals["sessions"],
-            "averages": {
-                name: None if totals[name] is None else round(float(totals[name]), 2)
-                for name in RATINGS
-            },
-            # Oldest first, ready to plot.
-            "history": [
-                {
-                    "booking": row.booking_id,
-                    "topic": row.booking.slot.topic,
-                    "session_starts_at": row.booking.starts_at,
-                    **{name: getattr(row, name) for name in RATINGS},
-                }
-                for row in reversed(recent)
-            ],
-            "latest_next_steps": recent[0].next_steps if recent else "",
-        })
+        totals = rows.aggregate(sessions=Count("id"), **{name: Avg(name) for name in RATINGS})
+        newest_first = list(rows.order_by("-booking__starts_at", "-id")[:20])
+        return Response(
+            {
+                "student": student,
+                "sessions": totals["sessions"],
+                "averages": {
+                    name: None if totals[name] is None else round(float(totals[name]), 2)
+                    for name in RATINGS
+                },
+                # Oldest first, ready to plot.
+                "history": [
+                    {
+                        "booking": row.booking_id,
+                        "topic": row.booking.slot.topic,
+                        "session_starts_at": row.booking.starts_at,
+                        **{name: getattr(row, name) for name in RATINGS},
+                    }
+                    for row in reversed(newest_first)
+                ],
+                "latest_next_steps": newest_first[0].next_steps if newest_first else "",
+            }
+        )

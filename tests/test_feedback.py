@@ -13,8 +13,11 @@ from scheduling import services
 from .base import Factory
 
 FORM = {
-    "communication": 4, "problem_solving": 3, "technical": 2,
-    "strengths": "Clear explanations", "improvements": "Test edge cases",
+    "communication": 4,
+    "problem_solving": 3,
+    "technical": 2,
+    "strengths": "Clear explanations",
+    "improvements": "Test edge cases",
     "next_steps": "Practise graphs",
 }
 
@@ -28,15 +31,13 @@ class FeedbackTests(Factory, TestCase):
         self.url = f"/api/bookings/{self.booking.pk}/feedback/"
 
     def session(self, hours):
-        return services.book_slot(
-            student=self.student, slot_id=self.slot(self.m, hours=hours).pk)
+        return services.book_slot(student=self.student, slot_id=self.slot(self.m, hours=hours).pk)
 
     def happened(self, booking, ago=2):
         self.move(booking.slot_id, timezone.now() - timedelta(hours=ago))
 
     def put(self, user=None, **changes):
-        return self.client_for(user or self.m).put(
-            self.url, {**FORM, **changes}, format="json")
+        return self.client_for(user or self.m).put(self.url, {**FORM, **changes}, format="json")
 
     def test_not_before_the_session_starts(self):
         self.assertEqual(self.put().data["code"], "session_not_started")
@@ -70,13 +71,16 @@ class FeedbackTests(Factory, TestCase):
     def test_missed_cancelled_and_locked(self):
         self.happened(self.booking)
         self.client_for(self.m).post(
-            f"/api/bookings/{self.booking.pk}/attendance/", {"attendance": "student_absent"})
+            f"/api/bookings/{self.booking.pk}/attendance/", {"attendance": "student_absent"}
+        )
         self.assertEqual(self.put().data["code"], "session_missed")
         self.client_for(self.m).post(
-            f"/api/bookings/{self.booking.pk}/attendance/", {"attendance": "completed"})
+            f"/api/bookings/{self.booking.pk}/attendance/", {"attendance": "completed"}
+        )
         self.assertEqual(self.put().status_code, 201)
         undo = self.client_for(self.m).post(
-            f"/api/bookings/{self.booking.pk}/attendance/", {"attendance": "mentor_absent"})
+            f"/api/bookings/{self.booking.pk}/attendance/", {"attendance": "mentor_absent"}
+        )
         self.assertEqual(undo.data["code"], "feedback_exists")
         Feedback.objects.update(created_at=timezone.now() - timedelta(days=8))
         self.assertEqual(self.put().data["code"], "feedback_locked")
@@ -89,7 +93,8 @@ class FeedbackTests(Factory, TestCase):
             self.assertEqual(client.get(self.url).status_code, 404)
             self.assertEqual(client.get("/api/feedback/").data["count"], 0)
             self.assertEqual(
-                client.get(f"/api/feedback/?student={self.student.pk}").data["count"], 0)
+                client.get(f"/api/feedback/?student={self.student.pk}").data["count"], 0
+            )
 
     def test_progress(self):
         second = self.session(60)
@@ -101,7 +106,8 @@ class FeedbackTests(Factory, TestCase):
         data = self.client_for(self.student).get("/api/feedback/progress/?student=999").data
         self.assertEqual(
             (data["student"], data["sessions"], data["averages"]["communication"]),
-            (self.student.pk, 2, 4.5))
+            (self.student.pk, 2, 4.5),
+        )
         self.assertEqual([h["booking"] for h in data["history"]], [self.booking.pk, second.pk])
         self.assertEqual(data["latest_next_steps"], "Mock again")
         admin = self.client_for(self.admin)

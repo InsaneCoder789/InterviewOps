@@ -35,7 +35,9 @@ class Slot(models.Model):
             )
         ]
         constraints = [
-            models.CheckConstraint(condition=Q(ends_at__gt=F("starts_at")), name="slot_ends_after_start"),
+            models.CheckConstraint(
+                condition=Q(ends_at__gt=F("starts_at")), name="slot_ends_after_start"
+            ),
             ExclusionConstraint(
                 name="slot_no_mentor_overlap",
                 expressions=[
@@ -45,6 +47,9 @@ class Slot(models.Model):
                 condition=Q(cancelled_at__isnull=True),
             ),
         ]
+
+    def __str__(self):
+        return f"slot {self.pk}: {self.topic}"
 
 
 class Booking(models.Model):
@@ -100,3 +105,6 @@ class Booking(models.Model):
                 name="booking_cancel_fields_consistent",
             ),
         ]
+
+    def __str__(self):
+        return f"booking {self.pk} for slot {self.slot_id} ({self.status})"

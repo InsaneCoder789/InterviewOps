@@ -6,10 +6,11 @@ from django.db import transaction
 from django.utils import timezone
 from rest_framework.exceptions import PermissionDenied
 
+from accounts.models import User
 from notifications import outbox
 from scheduling.exceptions import Conflict
 from scheduling.models import Booking
-from scheduling.services import _locked_booking
+from scheduling.services import locked_booking
 
 from .models import Feedback
 
@@ -19,8 +20,8 @@ logger = logging.getLogger("interviewops.feedback")
 @transaction.atomic
 def save_feedback(*, actor, booking_id, values):
     """Create or revise feedback. Returns (feedback, created)."""
-    slot, booking = _locked_booking(actor, booking_id)
-    if slot.mentor_id != actor.pk or actor.role != "mentor":
+    slot, booking = locked_booking(actor, booking_id)
+    if slot.mentor_id != actor.pk or actor.role != User.Role.MENTOR:
         raise PermissionDenied("Only the session's mentor can write feedback.")
     now = timezone.now()
     if booking.status != Booking.Status.BOOKED:
@@ -41,7 +42,6 @@ def save_feedback(*, actor, booking_id, values):
         booking.attendance = Booking.Attendance.COMPLETED
         booking.save(update_fields=["attendance"])
     if created:
-        outbox.enqueue(
-            outbox.Kind.FEEDBACK_READY, booking=booking, recipient_id=booking.student_id)
+        outbox.enqueue(outbox.Kind.FEEDBACK_READY, booking=booking, recipient_id=booking.student_id)
     logger.info("feedback_saved booking_id=%s created=%s", booking.pk, created)
     return feedback, created

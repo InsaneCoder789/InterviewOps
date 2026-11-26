@@ -19,7 +19,19 @@ class FeedbackSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Feedback
-        fields = ["id", "booking", "student", "mentor", "mentor_name", "topic",
-                  "session_starts_at", *RATINGS, "strengths", "improvements", "next_steps",
-                  "created_at", "updated_at"]
+        fields = [
+            "id",
+            "booking",
+            "student",
+            "mentor",
+            "mentor_name",
+            "topic",
+            "session_starts_at",
+            *RATINGS,
+            "strengths",
+            "improvements",
+            "next_steps",
+            "created_at",
+            "updated_at",
+        ]
         read_only_fields = ["id", "booking", "created_at", "updated_at"]

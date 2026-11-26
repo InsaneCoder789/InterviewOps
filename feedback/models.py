@@ -7,8 +7,7 @@ RATINGS = ["communication", "problem_solving", "technical"]
 class Feedback(models.Model):
     """What the mentor observed in one session. The mentor and topic come from the slot."""
 
-    booking = models.OneToOneField(
-        "scheduling.Booking", models.PROTECT, related_name="feedback")
+    booking = models.OneToOneField("scheduling.Booking", models.PROTECT, related_name="feedback")
     # 1 (needs a lot of work) to 5 (ready).
     communication = models.PositiveSmallIntegerField()
     problem_solving = models.PositiveSmallIntegerField()
@@ -28,3 +27,6 @@ class Feedback(models.Model):
             )
             for name in RATINGS
         ]
+
+    def __str__(self):
+        return f"feedback for booking {self.booking_id}"

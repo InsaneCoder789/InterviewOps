@@ -64,7 +64,9 @@ def publish_slot(*, mentor_id, topic, starts_at, ends_at):
         with transaction.atomic():
             mentor = _lock_user(mentor_id)
             if mentor.role != User.Role.MENTOR or not mentor.is_active:
-                raise Conflict("Slots can only be published for an active mentor.", "mentor_unavailable")
+                raise Conflict(
+                    "Slots can only be published for an active mentor.", "mentor_unavailable"
+                )
             if starts_at <= timezone.now():
                 raise Conflict("A slot must start in the future.", "slot_not_in_future")
             if not Slot.MIN_LENGTH <= ends_at - starts_at <= Slot.MAX_LENGTH:
@@ -119,7 +121,7 @@ def _mark_cancelled(booking, actor, now, notify=True):
         outbox.withdraw(booking)
 
 
-def _locked_booking(actor, booking_id):
+def locked_booking(actor, booking_id):
     """Lock the slot then the booking, hiding it from anyone not taking part."""
     slot_id = Booking.objects.filter(pk=booking_id).values_list("slot_id", flat=True).first()
     if slot_id is None:
@@ -139,14 +141,15 @@ def _check_changeable(actor, booking, now):
     """Rules shared by cancelling and rescheduling."""
     if booking.status == Booking.Status.CANCELLED:
         raise Conflict("This booking is already cancelled.", "booking_already_cancelled")
-    now = timezone.now()
     if booking.starts_at <= now:
-        raise Conflict("A session that has started cannot be cancelled.", "session_started")
+        raise Conflict(
+            "A session that has started cannot be cancelled or moved.", "session_started"
+        )
     cutoff = timedelta(hours=settings.STUDENT_CANCELLATION_CUTOFF_HOURS)
     if booking.student_id == actor.pk and booking.starts_at - now < cutoff:
         raise Conflict(
-            "Students cannot cancel less than "
-            f"{settings.STUDENT_CANCELLATION_CUTOFF_HOURS} hours before the session.",
+            "Students cannot cancel or move a session less than "
+            f"{settings.STUDENT_CANCELLATION_CUTOFF_HOURS} hours before it starts.",
             "cancel_cutoff",
         )
 
@@ -154,7 +157,7 @@ def _check_changeable(actor, booking, now):
 @transaction.atomic
 def cancel_booking(*, actor, booking_id):
     """Cancel one booking. The slot becomes bookable again."""
-    _, booking = _locked_booking(actor, booking_id)
+    _, booking = locked_booking(actor, booking_id)
     now = timezone.now()
     _check_changeable(actor, booking, now)
     _mark_cancelled(booking, actor, now)
@@ -198,7 +201,10 @@ def change_role(*, actor, user_id, role):
         user.slots.filter(cancelled_at__isnull=True, ends_at__gt=now).exists()
         or user.bookings.filter(status=Booking.Status.BOOKED, ends_at__gt=now).exists()
     ):
-        raise Conflict("Cancel this user's upcoming slots and bookings before changing role.", "role_has_commitments")
+        raise Conflict(
+            "Cancel this user's upcoming slots and bookings before changing role.",
+            "role_has_commitments",
+        )
     if user.role == User.Role.ADMIN:
         # Leaving the admin role also removes Django admin access.
         user.is_staff = user.is_superuser = False
@@ -224,8 +230,7 @@ def set_active(*, actor, user_id, is_active):
     if not is_active:
         Token.objects.filter(user=user).delete()
         _cancel_future_sessions(actor, user)
-    logger.info("status_changed user_id=%s active=%s actor_id=%s",
-                user.pk, is_active, actor.pk)
+    logger.info("status_changed user_id=%s active=%s actor_id=%s", user.pk, is_active, actor.pk)
     return user
 
 
@@ -281,15 +286,21 @@ def reschedule_booking(*, actor, booking_id, slot_id):
             _mark_cancelled(old, actor, now, notify=False)
             same_mentor = slot.mentor_id == slots[old_slot_id].mentor_id
             booking = Booking.objects.create(
-                slot=slot, student=student, starts_at=slot.starts_at, ends_at=slot.ends_at,
+                slot=slot,
+                student=student,
+                starts_at=slot.starts_at,
+                ends_at=slot.ends_at,
                 preparation_notes=old.preparation_notes,
                 meeting_link=old.meeting_link if same_mentor else "",
                 rescheduled_from=old,
             )
             outbox.booking_created(booking, kind=outbox.Kind.BOOKING_RESCHEDULED)
             if not same_mentor:
-                outbox.enqueue(outbox.Kind.BOOKING_CANCELLED, booking=old,
-                               recipient_id=slots[old_slot_id].mentor_id)
+                outbox.enqueue(
+                    outbox.Kind.BOOKING_CANCELLED,
+                    booking=old,
+                    recipient_id=slots[old_slot_id].mentor_id,
+                )
     except IntegrityError as exc:
         raise _conflict_from(exc) from exc
     logger.info("booking_rescheduled from=%s to=%s actor_id=%s", booking_id, booking.pk, actor.pk)
@@ -299,7 +310,7 @@ def reschedule_booking(*, actor, booking_id, slot_id):
 @transaction.atomic
 def update_session(*, actor, booking_id, meeting_link=None, preparation_notes=None):
     """The mentor adds the meeting link; the student adds preparation notes."""
-    _, booking = _locked_booking(actor, booking_id)
+    _, booking = locked_booking(actor, booking_id)
     admin = actor.role == User.Role.ADMIN
     is_student = booking.student_id == actor.pk
     if meeting_link is not None and not admin and is_student:
@@ -326,7 +337,7 @@ def update_session(*, actor, booking_id, meeting_link=None, preparation_notes=No
 
 @transaction.atomic
 def record_attendance(*, actor, booking_id, attendance):
-    _, booking = _locked_booking(actor, booking_id)
+    _, booking = locked_booking(actor, booking_id)
     if booking.student_id == actor.pk:
         raise PermissionDenied("Only the mentor or an admin can record attendance.")
     if booking.status != Booking.Status.BOOKED:

@@ -114,18 +114,23 @@ class BookingViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.
         serializer = BookingCreateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         booking = services.reschedule_booking(
-            actor=request.user, booking_id=int(pk), slot_id=serializer.validated_data["slot"])
+            actor=request.user, booking_id=int(pk), slot_id=serializer.validated_data["slot"]
+        )
         return self._respond(booking, status.HTTP_201_CREATED)
 
     def partial_update(self, request, pk=None):
         serializer = SessionUpdateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        return self._respond(services.update_session(
-            actor=request.user, booking_id=pk, **serializer.validated_data))
+        return self._respond(
+            services.update_session(actor=request.user, booking_id=pk, **serializer.validated_data)
+        )
 
     @action(detail=True, methods=["post"])
     def attendance(self, request, pk=None):
         serializer = AttendanceSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        return self._respond(services.record_attendance(
-            actor=request.user, booking_id=pk, **serializer.validated_data))
+        return self._respond(
+            services.record_attendance(
+                actor=request.user, booking_id=pk, **serializer.validated_data
+            )
+        )
