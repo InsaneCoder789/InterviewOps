@@ -17,23 +17,36 @@ class ProfileTests(Factory, TestCase):
     def test_empty_profile_then_save(self):
         client = self.client_for(self.student)
         self.assertEqual(client.get("/api/profile/").data["topics"], [])
-        response = client.patch("/api/profile/", {
-            "topics": [" System Design", "system design", "DSA"],
-            "target_roles": ["Backend engineer"], "experience_level": "entry",
-            "timezone": "Asia/Kolkata", "role": "admin", "user": self.m.pk,
-        }, format="json")
+        response = client.patch(
+            "/api/profile/",
+            {
+                "topics": [" System Design", "system design", "DSA"],
+                "target_roles": ["Backend engineer"],
+                "experience_level": "entry",
+                "timezone": "Asia/Kolkata",
+                "role": "admin",
+                "user": self.m.pk,
+            },
+            format="json",
+        )
         self.assertEqual(response.status_code, 200, response.data)
         self.assertEqual(
             (response.data["topics"], response.data["role"], response.data["user"]),
-            (["system design", "dsa"], "student", self.student.pk))
+            (["system design", "dsa"], "student", self.student.pk),
+        )
         self.assertNotIn("email", response.data)
 
     def test_invalid_values_are_refused(self):
         client = self.client_for(self.student)
-        for body in ({"timezone": "Mars/Base"}, {"experience_level": "wizard"},
-                     {"topics": [str(i) for i in range(16)]}, {"bio": "x" * 2001}):
+        for body in (
+            {"timezone": "Mars/Base"},
+            {"experience_level": "wizard"},
+            {"topics": [str(i) for i in range(16)]},
+            {"bio": "x" * 2001},
+        ):
             self.assertEqual(
-                client.patch("/api/profile/", body, format="json").status_code, 400, body)
+                client.patch("/api/profile/", body, format="json").status_code, 400, body
+            )
         self.assertFalse(Profile.objects.exists())
 
     def test_who_may_read_whose_profile(self):
@@ -75,7 +88,8 @@ class AccountStatusTests(Factory, TestCase):
 
     def set_active(self, user, value, actor=None):
         return self.client_for(actor or self.admin).patch(
-            f"/api/users/{user.pk}/status/", {"is_active": value}, format="json")
+            f"/api/users/{user.pk}/status/", {"is_active": value}, format="json"
+        )
 
     def test_deactivating_a_mentor_cancels_their_future_slots(self):
         client = self.client_for(self.m)
@@ -83,9 +97,14 @@ class AccountStatusTests(Factory, TestCase):
         self.assertEqual(client.get("/api/auth/me/").status_code, 401)
         self.assertEqual(Slot.objects.filter(cancelled_at__isnull=True).count(), 0)
         self.booking.refresh_from_db()
-        self.assertEqual((self.booking.status, self.booking.cancelled_by), ("cancelled", self.admin))
-        recipients = set(self.booking.notifications.filter(
-            kind="booking_cancelled").values_list("recipient_id", flat=True))
+        self.assertEqual(
+            (self.booking.status, self.booking.cancelled_by), ("cancelled", self.admin)
+        )
+        recipients = set(
+            self.booking.notifications.filter(kind="booking_cancelled").values_list(
+                "recipient_id", flat=True
+            )
+        )
         self.assertIn(self.student.pk, recipients)
 
     def test_deactivating_a_student_frees_the_slot(self):

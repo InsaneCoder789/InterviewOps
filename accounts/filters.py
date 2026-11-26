@@ -28,4 +28,5 @@ class MentorFilter(django_filters.FilterSet):
 
     def filter_search(self, queryset, name, value):
         return queryset.filter(
-            Q(username__icontains=value) | Q(profile__display_name__icontains=value))
+            Q(username__icontains=value) | Q(profile__display_name__icontains=value)
+        )
