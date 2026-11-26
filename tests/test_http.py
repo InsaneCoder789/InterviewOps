@@ -15,7 +15,8 @@ ALLOW = "Access-Control-Allow-Origin"
 class CorsTests(Factory, TestCase):
     def preflight(self, origin, path="/api/bookings/"):
         return APIClient().options(
-            path, HTTP_ORIGIN=origin, HTTP_ACCESS_CONTROL_REQUEST_METHOD="POST")
+            path, HTTP_ORIGIN=origin, HTTP_ACCESS_CONTROL_REQUEST_METHOD="POST"
+        )
 
     def test_preflight_from_allowed_origin_needs_no_token(self):
         response = self.preflight(APP)
@@ -53,8 +54,9 @@ class RegistrationAndConfigTests(Factory, TestCase):
     @override_settings(ALLOW_REGISTRATION=False)
     def test_closed_registration_creates_nothing(self):
         response = APIClient().post("/api/auth/register/", self.body)
-        self.assertEqual((response.status_code, response.data["code"]),
-                         (403, "registration_closed"))
+        self.assertEqual(
+            (response.status_code, response.data["code"]), (403, "registration_closed")
+        )
         self.assertFalse(User.objects.exists())
         self.assertFalse(APIClient().get("/api/config/").json()["registration_open"])
 
@@ -69,9 +71,14 @@ class RegistrationAndConfigTests(Factory, TestCase):
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertEqual(
-            (data["student_cancellation_cutoff_hours"], data["slot_min_minutes"],
-             data["slot_max_minutes"], data["reminder_lead_hours"]),
-            (2, 15, 180, 24))
+            (
+                data["student_cancellation_cutoff_hours"],
+                data["slot_min_minutes"],
+                data["slot_max_minutes"],
+                data["reminder_lead_hours"],
+            ),
+            (2, 15, 180, 24),
+        )
         self.assertEqual(client.post("/api/config/").status_code, 405)
 
 
@@ -79,15 +86,20 @@ class ErrorBodyTests(Factory, TestCase):
     def test_unknown_api_urls_answer_json(self):
         for url in ("/api/nope/", "/api/slots/abc/", "/api/users/x/role/"):
             response = APIClient().get(url)
-            self.assertEqual((response.status_code, response.json()), (404, {"detail": "Not found."}), url)
+            self.assertEqual(
+                (response.status_code, response.json()), (404, {"detail": "Not found."}), url
+            )
         self.assertIn("text/html", APIClient().get("/nope/")["Content-Type"])
 
     def test_crashes_answer_json_without_details(self):
         client = self.client_for(self.user("student"))
         client.raise_request_exception = False
-        with mock.patch("accounts.views.UserSerializer.to_representation",
-                        side_effect=RuntimeError("secret detail")):
+        with mock.patch(
+            "accounts.views.UserSerializer.to_representation",
+            side_effect=RuntimeError("secret detail"),
+        ):
             response = client.get("/api/auth/me/")
-        self.assertEqual((response.status_code, response.json()),
-                         (500, {"detail": "Server error."}))
+        self.assertEqual(
+            (response.status_code, response.json()), (500, {"detail": "Server error."})
+        )
         self.assertIn("X-Request-ID", response)

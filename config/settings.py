@@ -11,23 +11,23 @@ def env_bool(name, default=False):
     return os.environ.get(name, str(default)).lower() in {"1", "true", "yes"}
 
 
+def env_list(name, default=""):
+    return [item.strip() for item in os.environ.get(name, default).split(",") if item.strip()]
+
+
 DEBUG = env_bool("DJANGO_DEBUG")
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "")
 if not SECRET_KEY:
     if not DEBUG:
         raise ImproperlyConfigured("Set DJANGO_SECRET_KEY (or DJANGO_DEBUG=1 for local work).")
-    SECRET_KEY = "local-development-only-not-a-secret"
+    SECRET_KEY = "local-development-only-not-a-secret"  # noqa: S105 (debug only)
 
-ALLOWED_HOSTS = [h for h in os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",") if h]
+ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1")
 if render_host := os.environ.get("RENDER_EXTERNAL_HOSTNAME"):
     ALLOWED_HOSTS.append(render_host)
 
 # Browser origins allowed to call the API, comma separated, e.g. http://localhost:5173
-CORS_ALLOWED_ORIGINS = [
-    origin.strip().rstrip("/")
-    for origin in os.environ.get("CORS_ALLOWED_ORIGINS", "").split(",")
-    if origin.strip()
-]
+CORS_ALLOWED_ORIGINS = [origin.rstrip("/") for origin in env_list("CORS_ALLOWED_ORIGINS")]
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -102,6 +102,9 @@ CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.db.DatabaseCache",
         "LOCATION": "django_cache",
+        # The default of 300 entries would let a flood of new addresses evict, and so
+        # reset, the counters of the addresses being limited.
+        "OPTIONS": {"MAX_ENTRIES": 100_000},
     }
 }
 
@@ -133,8 +136,8 @@ REST_FRAMEWORK = {
     "NUM_PROXIES": int(os.environ.get("NUM_PROXIES", "0")),
 }
 
-# Sign-up has no email verification or password reset, so production keeps it closed
-# unless asked.
+# Open sign-up does not verify email addresses, so production keeps it closed unless
+# asked. Invitations are the normal way to join.
 ALLOW_REGISTRATION = env_bool("ALLOW_REGISTRATION", DEBUG)
 
 # Where the web app is served; emailed links point here.
