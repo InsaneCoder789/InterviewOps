@@ -28,21 +28,25 @@ def make_token(invitation):
 
 
 def _invalid():
-    return ValidationError({
-        "detail": "This invitation is not valid. Ask for a new one.",
-        "code": "invalid_invitation",
-    })
+    return ValidationError(
+        {
+            "detail": "This invitation is not valid. Ask for a new one.",
+            "code": "invalid_invitation",
+        }
+    )
 
 
 @transaction.atomic
 def invite(*, actor, email, role):
     email = email.lower()
-    if User.objects.filter(email__iexact=email).exists():
-        raise Conflict("An account already uses this email address.", "email_in_use")
-    # Inviting again replaces the earlier invitation.
+    # Inviting again replaces the earlier invitation. This waits for anyone who is
+    # accepting it, so the account check that follows sees their new account.
     Invitation.objects.filter(
         email=email, accepted_at__isnull=True, revoked_at__isnull=True
     ).update(revoked_at=timezone.now())
+    if User.objects.filter(email__iexact=email).exists():
+        # Raising rolls the revocation back with the transaction.
+        raise Conflict("An account already uses this email address.", "email_in_use")
     try:
         with transaction.atomic():
             invitation = Invitation.objects.create(
@@ -79,7 +83,7 @@ def accept(*, token, username, password, validate):
     try:
         data = signing.loads(token, salt=SALT)
         pk, nonce = int(data["id"]), str(data["nonce"])
-    except (signing.BadSignature, KeyError, TypeError, ValueError):
+    except signing.BadSignature, KeyError, TypeError, ValueError:
         raise _invalid() from None
     try:
         with transaction.atomic():
@@ -88,7 +92,8 @@ def accept(*, token, username, password, validate):
                 raise _invalid()
             validate(username, invitation.email, password)
             user = User.objects.create_user(
-                username, invitation.email, password, role=invitation.role)
+                username, invitation.email, password, role=invitation.role
+            )
             invitation.accepted_at = timezone.now()
             invitation.accepted_by = user
             invitation.save(update_fields=["accepted_at", "accepted_by"])

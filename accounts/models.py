@@ -1,6 +1,7 @@
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
+from django.db.models.functions import Lower
 from django.utils import timezone
 
 
@@ -29,7 +30,8 @@ class User(AbstractUser):
             models.CheckConstraint(
                 condition=models.Q(role__in=["student", "mentor", "admin"]),
                 name="user_role_valid",
-            )
+            ),
+            models.UniqueConstraint(Lower("email"), name="user_email_ci_unique"),
         ]
 
 
@@ -42,8 +44,7 @@ class Invitation(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     expires_at = models.DateTimeField()
     accepted_at = models.DateTimeField(null=True, blank=True)
-    accepted_by = models.ForeignKey(
-        User, models.PROTECT, null=True, blank=True, related_name="+")
+    accepted_by = models.ForeignKey(User, models.PROTECT, null=True, blank=True, related_name="+")
     revoked_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
@@ -55,6 +56,9 @@ class Invitation(models.Model):
                 name="invitation_one_open_per_email",
             )
         ]
+
+    def __str__(self):
+        return f"invitation {self.pk} ({self.role})"
 
     @property
     def status(self):
@@ -85,3 +89,6 @@ class Profile(models.Model):
     topics = ArrayField(models.CharField(max_length=60), default=list, blank=True)
     timezone = models.CharField(max_length=64, default="UTC")
     updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"profile of user {self.user_id}"
