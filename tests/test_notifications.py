@@ -34,8 +34,9 @@ class QueueTests(Factory, TestCase):
         return Notification.objects.get(booking=self.booking, kind="reminder")
 
     def test_scheduled_a_day_ahead(self):
-        self.assertEqual(self.reminder().available_at,
-                         self.slot_obj.starts_at - timedelta(hours=24))
+        self.assertEqual(
+            self.reminder().available_at, self.slot_obj.starts_at - timedelta(hours=24)
+        )
         self.assertEqual(delivery.process_due(), 0)
 
     def test_sends_once(self):
@@ -76,8 +77,7 @@ class QueueTests(Factory, TestCase):
         self.make_due()
         with patch(SEND, side_effect=TimeoutError):
             delivery.process_due()
-        self.assertLessEqual(
-            self.reminder().available_at, timezone.now() + timedelta(seconds=100))
+        self.assertLessEqual(self.reminder().available_at, timezone.now() + timedelta(seconds=100))
 
     def test_inactive_student_is_not_reminded(self):
         type(self.student).objects.filter(pk=self.student.pk).update(is_active=False)
@@ -90,8 +90,7 @@ class QueueTests(Factory, TestCase):
         self.assertEqual(delivery.process_due(should_stop=lambda: True), 0)
         self.assertEqual(self.reminder().status, "pending")
 
-    @override_settings(
-        DEBUG=False, EMAIL_BACKEND="django.core.mail.backends.console.EmailBackend")
+    @override_settings(DEBUG=False, EMAIL_BACKEND="django.core.mail.backends.console.EmailBackend")
     def test_worker_refuses_console_email_in_production(self):
         with self.assertRaises(CommandError):
             call_command("send_reminders", once=True)
@@ -158,7 +157,8 @@ class BookingEmailTests(Factory, TestCase):
     def test_cancellation_tells_both_and_withdraws_the_rest(self):
         services.cancel_booking(actor=self.m, booking_id=self.booking.pk)
         Notification.objects.exclude(status="skipped").update(
-            available_at=timezone.now() - timedelta(seconds=1))
+            available_at=timezone.now() - timedelta(seconds=1)
+        )
         self.assertEqual(self.sent(), [("mentor", "Cancelled"), ("student", "Cancelled")])
 
     def test_message_names_the_other_person(self):

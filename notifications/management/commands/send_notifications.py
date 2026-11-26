@@ -22,6 +22,8 @@ class Command(BaseCommand):
         if not settings.DEBUG and settings.EMAIL_BACKEND.endswith("console.EmailBackend"):
             # Printing would mark mail as sent and put addresses in the logs.
             raise CommandError("Configure EMAIL_BACKEND: the console backend is for DEBUG only.")
+        if interval <= 0:
+            raise CommandError("--interval must be greater than zero.")
         if once:
             self.stdout.write(f"Processed {process_due()} message(s).")
             return

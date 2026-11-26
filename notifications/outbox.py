@@ -11,8 +11,12 @@ from .models import Notification
 Kind = Notification.Kind
 UNSENT = [Notification.Status.PENDING, Notification.Status.SENDING]
 # Notices that stop making sense once a booking is cancelled.
-LIVE_BOOKING_KINDS = [Kind.BOOKING_CONFIRMED, Kind.BOOKING_RESCHEDULED, Kind.REMINDER,
-                      Kind.SESSION_UPDATED]
+LIVE_BOOKING_KINDS = [
+    Kind.BOOKING_CONFIRMED,
+    Kind.BOOKING_RESCHEDULED,
+    Kind.REMINDER,
+    Kind.SESSION_UPDATED,
+]
 
 
 def enqueue(kind, *, at=None, **links):

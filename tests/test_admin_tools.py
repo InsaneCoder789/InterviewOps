@@ -1,3 +1,4 @@
+import io
 from datetime import timedelta
 
 from django.core.management import CommandError, call_command
@@ -23,16 +24,23 @@ class AdminToolTests(Factory, TestCase):
     def test_overview(self):
         data = self.client.get("/api/admin/overview/").data
         self.assertEqual(
-            (data["active_users"], data["open_slots"], data["upcoming_sessions"],
-             data["upcoming_without_link"], data["awaiting_feedback"]),
-            ({"student": 1, "mentor": 1, "admin": 1}, 1, 1, 1, 0))
+            (
+                data["active_users"],
+                data["open_slots"],
+                data["upcoming_sessions"],
+                data["upcoming_without_link"],
+                data["awaiting_feedback"],
+            ),
+            ({"student": 1, "mentor": 1, "admin": 1}, 1, 1, 1, 0),
+        )
         self.move(self.booking.slot_id, timezone.now() - timedelta(hours=3))
         self.assertEqual(self.client.get("/api/admin/overview/").data["awaiting_feedback"], 1)
 
     def test_delivery_list_and_retry(self):
         failed = Notification.objects.filter(kind="reminder").first()
         Notification.objects.filter(pk=failed.pk).update(
-            status="failed", attempts=10, last_error="SMTPException: down")
+            status="failed", attempts=10, last_error="SMTPException: down"
+        )
         rows = self.client.get("/api/notifications/?status=failed").data["results"]
         self.assertEqual([r["id"] for r in rows], [failed.pk])
         self.assertTrue(rows[0]["email"])
@@ -49,7 +57,9 @@ class AdminToolTests(Factory, TestCase):
             self.assertEqual(client.post("/api/notifications/1/retry/").status_code, 403)
 
     def test_check_queue_command(self):
-        call_command("check_queue", verbosity=0, stdout=open("/dev/null", "w"))
+        output = io.StringIO()
+        call_command("check_queue", stdout=output)
+        self.assertIn("ok failed=0", output.getvalue())
         Notification.objects.update(available_at=timezone.now() - timedelta(hours=1))
         with self.assertRaises(CommandError):
             call_command("check_queue")

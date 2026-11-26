@@ -14,7 +14,7 @@ class Notification(models.Model):
         SESSION_UPDATED = "session_updated"
         FEEDBACK_READY = "feedback_ready"
         INVITATION = "invitation"
-        PASSWORD_RESET = "password_reset"
+        PASSWORD_RESET = "password_reset"  # noqa: S105 (a message kind)
 
     class Status(models.TextChoices):
         PENDING = "pending"
@@ -25,7 +25,10 @@ class Notification(models.Model):
 
     kind = models.CharField(max_length=32, choices=Kind.choices)
     recipient = models.ForeignKey(
-        settings.AUTH_USER_MODEL, models.CASCADE, null=True, blank=True,
+        settings.AUTH_USER_MODEL,
+        models.CASCADE,
+        null=True,
+        blank=True,
         related_name="notifications",
     )
     booking = models.ForeignKey(
@@ -58,3 +61,6 @@ class Notification(models.Model):
                 name="notification_one_reminder_per_person",
             )
         ]
+
+    def __str__(self):
+        return f"{self.kind} {self.pk} ({self.status})"

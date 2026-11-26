@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand, CommandError
 
-from notifications.views import queue_health
+from notifications.health import queue_health
 
 
 class Command(BaseCommand):

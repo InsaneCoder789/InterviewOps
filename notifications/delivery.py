@@ -29,13 +29,25 @@ def still_applies(notification, now):
     if notification.invitation_id:
         return notification.invitation.is_pending()
     if notification.kind in LIVE_BOOKING_KINDS:
+        # A link may be added during a session; the other notices are useless then.
+        deadline = (
+            booking.ends_at
+            if notification.kind == Notification.Kind.SESSION_UPDATED
+            else booking.starts_at
+        )
         return (
             booking.status == booking.Status.BOOKED
-            and booking.starts_at > now
+            and deadline > now
             and booking.student.is_active
             and booking.slot.mentor.is_active
         )
     return True
+
+
+def _storable(text):
+    """Mail servers can send back anything; keep only what the column accepts."""
+    clean = text.encode("utf-8", "replace").decode("utf-8").replace("\x00", "")
+    return clean[: Notification._meta.get_field("last_error").max_length]
 
 
 def claim_next():
@@ -59,8 +71,7 @@ def claim_next():
         else:
             notification.status = Status.SENDING
             notification.attempts += 1
-            notification.available_at = now + timedelta(
-                seconds=settings.NOTIFICATION_LEASE_SECONDS)
+            notification.available_at = now + timedelta(seconds=settings.NOTIFICATION_LEASE_SECONDS)
         notification.save(update_fields=["status", "attempts", "available_at", "last_error"])
         return notification
 
@@ -78,11 +89,12 @@ def deliver(notification):
         subject, body, address = render(notification)
         send_mail(subject=subject, message=body, from_email=None, recipient_list=[address])
     except Exception as exc:
-        error = f"{type(exc).__name__}: {exc}"[:500]
+        error = _storable(f"{type(exc).__name__}: {exc}")
         if notification.attempts >= settings.NOTIFICATION_MAX_ATTEMPTS:
             mine.update(status=Status.FAILED, last_error=error)
-            logger.error("notification_failed id=%s attempts=%s",
-                         notification.pk, notification.attempts)
+            logger.error(
+                "notification_failed id=%s attempts=%s", notification.pk, notification.attempts
+            )
         else:
             delay = min(
                 settings.NOTIFICATION_RETRY_BASE_SECONDS * 2 ** (notification.attempts - 1),
@@ -94,12 +106,21 @@ def deliver(notification):
                 available_at=timezone.now() + timedelta(seconds=delay),
             )
             # Exception type only: mail errors can echo recipient addresses.
-            logger.warning("notification_retry id=%s attempt=%s delay_s=%s error=%s",
-                           notification.pk, notification.attempts, delay, type(exc).__name__)
+            logger.warning(
+                "notification_retry id=%s attempt=%s delay_s=%s error=%s",
+                notification.pk,
+                notification.attempts,
+                delay,
+                type(exc).__name__,
+            )
     else:
         mine.update(status=Status.SENT, sent_at=timezone.now(), last_error="")
-        logger.info("notification_sent id=%s kind=%s attempt=%s",
-                    notification.pk, notification.kind, notification.attempts)
+        logger.info(
+            "notification_sent id=%s kind=%s attempt=%s",
+            notification.pk,
+            notification.kind,
+            notification.attempts,
+        )
 
 
 def process_due(limit=100, should_stop=lambda: False):
