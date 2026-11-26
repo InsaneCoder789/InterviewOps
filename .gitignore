@@ -6,3 +6,10 @@ staticfiles/
 *.dump
 PLAN.md
 docs/plan/
+node_modules/
+web/**/dist/
+web/**/.astro/
+
+# Local tool output
+.coverage*
+.ruff_cache/
