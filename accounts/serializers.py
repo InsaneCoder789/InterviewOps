@@ -42,7 +42,8 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         check_password_strength(
-            attrs["password"], User(username=attrs["username"], email=attrs["email"]))
+            attrs["password"], User(username=attrs["username"], email=attrs["email"])
+        )
         return attrs
 
     def create(self, validated_data):
@@ -52,6 +53,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 class StatusSerializer(serializers.Serializer):
     is_active = serializers.BooleanField(required=True)
 
+    # A form body with the field left out would otherwise read as false.
     def validate(self, attrs):
         if "is_active" not in self.initial_data:
             raise serializers.ValidationError({"is_active": ["This field is required."]})
@@ -70,8 +72,18 @@ class InvitationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Invitation
-        fields = ["id", "email", "role", "status", "invited_by", "created_at", "expires_at",
-                  "accepted_at", "accepted_by", "revoked_at"]
+        fields = [
+            "id",
+            "email",
+            "role",
+            "status",
+            "invited_by",
+            "created_at",
+            "expires_at",
+            "accepted_at",
+            "accepted_by",
+            "revoked_at",
+        ]
         read_only_fields = [f for f in fields if f not in ("email", "role")]
         # Re-inviting is allowed; the service replaces the open invitation.
         validators = []
@@ -86,7 +98,8 @@ class AcceptInvitationSerializer(serializers.Serializer):
 def check_new_account(username, email, password):
     if User.objects.filter(username=username).exists():
         raise serializers.ValidationError(
-            {"username": ["A user with that username already exists."]})
+            {"username": ["A user with that username already exists."]}
+        )
     check_password_strength(password, User(username=username, email=email))
 
 
@@ -129,8 +142,18 @@ class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         # No email address: other members see profiles.
-        fields = ["user", "username", "role", "display_name", "headline", "bio",
-                  "experience_level", "target_roles", "topics", "timezone"]
+        fields = [
+            "user",
+            "username",
+            "role",
+            "display_name",
+            "headline",
+            "bio",
+            "experience_level",
+            "target_roles",
+            "topics",
+            "timezone",
+        ]
 
     def validate_timezone(self, value):
         if value not in available_timezones():

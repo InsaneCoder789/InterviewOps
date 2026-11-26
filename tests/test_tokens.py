@@ -15,8 +15,7 @@ def age(user, hours):
 
 
 def login(user):
-    return APIClient().post(
-        "/api/auth/login/", {"username": user.username, "password": PASSWORD})
+    return APIClient().post("/api/auth/login/", {"username": user.username, "password": PASSWORD})
 
 
 @override_settings(TOKEN_TTL_HOURS=12)
@@ -31,8 +30,9 @@ class TokenExpiryTests(Factory, TestCase):
         self.assertEqual(self.client.get("/api/auth/me/").status_code, 200)
         age(self.student, 12)
         response = self.client.get("/api/auth/me/")
-        self.assertEqual((response.status_code, response.data["detail"]),
-                         (401, "Token has expired."))
+        self.assertEqual(
+            (response.status_code, response.data["detail"]), (401, "Token has expired.")
+        )
 
     def test_login_keeps_a_live_token_and_replaces_an_expired_one(self):
         first = login(self.student).data

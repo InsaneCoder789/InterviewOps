@@ -35,8 +35,10 @@ class InvitationTests(Factory, TestCase):
         return self.client.post("/api/invitations/", {"email": email, "role": role})
 
     def accept(self, token, username="priya", password=NEW_PASSWORD):
-        return APIClient().post("/api/auth/accept-invitation/", {
-            "token": token, "username": username, "password": password})
+        return APIClient().post(
+            "/api/auth/accept-invitation/",
+            {"token": token, "username": username, "password": password},
+        )
 
     def test_invited_person_joins_with_that_role_while_signup_is_closed(self):
         self.assertEqual(self.invite().status_code, 201)
@@ -45,13 +47,14 @@ class InvitationTests(Factory, TestCase):
         self.assertIn("https://app.example.test/accept-invitation#token=", mail.outbox[-1].body)
         response = self.accept(token)
         self.assertEqual(response.status_code, 201, response.data)
-        self.assertEqual((response.data["role"], response.data["email"]),
-                         ("mentor", "priya@example.test"))
-        self.assertEqual(self.client.get("/api/invitations/").data["results"][0]["status"],
-                         "accepted")
+        self.assertEqual(
+            (response.data["role"], response.data["email"]), ("mentor", "priya@example.test")
+        )
+        self.assertEqual(
+            self.client.get("/api/invitations/").data["results"][0]["status"], "accepted"
+        )
         again = self.accept(token, "second")
-        self.assertEqual((again.status_code, str(again.data["code"])),
-                         (400, "invalid_invitation"))
+        self.assertEqual((again.status_code, str(again.data["code"])), (400, "invalid_invitation"))
 
     def test_no_usable_secret_is_stored(self):
         self.invite()
@@ -67,10 +70,10 @@ class InvitationTests(Factory, TestCase):
         self.assertEqual(self.accept(old).status_code, 400)
         self.assertEqual(self.accept(new[:-2] + "xx").status_code, 400)
         Invitation.objects.filter(pk=second).update(
-            expires_at=timezone.now() - timedelta(seconds=1))
+            expires_at=timezone.now() - timedelta(seconds=1)
+        )
         self.assertEqual(self.accept(new).status_code, 400)
-        Invitation.objects.filter(pk=second).update(
-            expires_at=timezone.now() + timedelta(days=1))
+        Invitation.objects.filter(pk=second).update(expires_at=timezone.now() + timedelta(days=1))
         self.client.post(f"/api/invitations/{second}/revoke/")
         self.assertEqual(self.accept(new).status_code, 400)
         self.assertEqual(Invitation.objects.get(pk=first).status, "revoked")
@@ -108,11 +111,15 @@ class PasswordTests(Factory, TestCase):
 
     def confirm(self, values, password=NEW_PASSWORD):
         return APIClient().post(
-            "/api/auth/password-reset/confirm/", {**values, "password": password})
+            "/api/auth/password-reset/confirm/", {**values, "password": password}
+        )
 
     def login(self, password):
-        return APIClient().post(
-            "/api/auth/login/", {"username": "student", "password": password}).status_code
+        return (
+            APIClient()
+            .post("/api/auth/login/", {"username": "student", "password": password})
+            .status_code
+        )
 
     def test_reset_changes_the_password_once_and_signs_out(self):
         self.assertEqual(self.request_reset("STUDENT@example.test").status_code, 202)
@@ -129,8 +136,7 @@ class PasswordTests(Factory, TestCase):
         User.objects.filter(pk=self.student.pk).update(is_active=False)
         for email in ("student@example.test", "nobody@example.test"):
             response = self.request_reset(email)
-            self.assertEqual((response.status_code, response.data),
-                             (known.status_code, known.data))
+            self.assertEqual((response.status_code, response.data), (known.status_code, known.data))
         self.assertFalse(Notification.objects.exists())
 
     def test_repeated_requests_queue_one_message(self):
@@ -144,11 +150,13 @@ class PasswordTests(Factory, TestCase):
 
     def test_change_requires_the_current_password_and_rotates_the_token(self):
         old = Token.objects.get(user=self.student).key
-        wrong = self.client.post("/api/auth/password/", {
-            "current_password": "nope", "new_password": NEW_PASSWORD})
+        wrong = self.client.post(
+            "/api/auth/password/", {"current_password": "nope", "new_password": NEW_PASSWORD}
+        )
         self.assertEqual(wrong.status_code, 400)
-        response = self.client.post("/api/auth/password/", {
-            "current_password": PASSWORD, "new_password": NEW_PASSWORD})
+        response = self.client.post(
+            "/api/auth/password/", {"current_password": PASSWORD, "new_password": NEW_PASSWORD}
+        )
         self.assertEqual(response.status_code, 200)
         self.assertNotEqual(response.data["token"], old)
         self.assertEqual(self.client.get("/api/auth/me/").status_code, 401)

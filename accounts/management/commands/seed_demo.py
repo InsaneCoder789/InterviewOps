@@ -46,12 +46,17 @@ class Command(BaseCommand):
         ira = users["demo-student-ira"]
         slots = [
             services.publish_slot(
-                mentor_id=mentor.pk, topic=topic,
+                mentor_id=mentor.pk,
+                topic=topic,
                 starts_at=start + timedelta(hours=hours),
-                ends_at=start + timedelta(hours=hours + 1))
+                ends_at=start + timedelta(hours=hours + 1),
+            )
             for mentor, topic, hours in (
-                (asha, "System design", 26), (asha, "Data structures", 50),
-                (vik, "Behavioural", 74), (vik, "Behavioural", 98))
+                (asha, "System design", 26),
+                (asha, "Data structures", 50),
+                (vik, "Behavioural", 74),
+                (vik, "Behavioural", 98),
+            )
         ]
         services.book_slot(student=ira, slot_id=slots[0].pk)
         # One finished session with feedback: book it, then move it into the past.
@@ -59,13 +64,18 @@ class Command(BaseCommand):
         past = {"starts_at": start - timedelta(hours=48), "ends_at": start - timedelta(hours=47)}
         Slot.objects.filter(pk=slots[1].pk).update(**past)
         Booking.objects.filter(pk=done.pk).update(**past)
-        save_feedback(actor=asha, booking_id=done.pk, values={
-            "communication": 4, "problem_solving": 3, "technical": 3,
-            "strengths": "Explained the approach before coding.",
-            "improvements": "Check edge cases.",
-            "next_steps": "Practise two graph problems.",
-        })
+        save_feedback(
+            actor=asha,
+            booking_id=done.pk,
+            values={
+                "communication": 4,
+                "problem_solving": 3,
+                "technical": 3,
+                "strengths": "Explained the approach before coding.",
+                "improvements": "Check edge cases.",
+                "next_steps": "Practise two graph problems.",
+            },
+        )
         # Demo data sends no mail.
         Notification.objects.update(status=Notification.Status.SKIPPED)
-        self.stdout.write(
-            "Created " + ", ".join(users) + f"\nPassword for all of them: {password}")
+        self.stdout.write("Created " + ", ".join(users) + f"\nPassword for all of them: {password}")

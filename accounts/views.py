@@ -1,5 +1,3 @@
-import logging
-
 from django.conf import settings
 from django.db import IntegrityError, transaction
 from django.utils import timezone
@@ -12,6 +10,8 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
+
+from scheduling.services import change_role, set_active
 
 from . import invitations, passwords
 from .authentication import expires_at
@@ -33,15 +33,11 @@ from .serializers import (
     check_new_account,
 )
 
-logger = logging.getLogger("interviewops.accounts")
-
 
 class UserStatusView(APIView):
     permission_classes = [IsAdminRole]
 
     def patch(self, request, pk):
-        from scheduling.services import set_active
-
         serializer = StatusSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = set_active(actor=request.user, user_id=pk, **serializer.validated_data)
@@ -160,7 +156,13 @@ class LoginView(ObtainAuthToken):
         user = serializer.validated_data["user"]
         with transaction.atomic():
             # Two logins at once must not both replace an expired token.
-            User.objects.select_for_update(no_key=True).get(pk=user.pk)
+            locked = User.objects.select_for_update(no_key=True).get(pk=user.pk)
+            # The password was checked before the lock. If the account was deactivated
+            # or its password changed since, issuing a token would undo that.
+            if not locked.is_active or locked.password != user.password:
+                raise ValidationError(
+                    {"non_field_errors": ["Unable to log in with provided credentials."]}
+                )
             token = Token.objects.filter(user=user).first()
             if token and expires_at(token) <= timezone.now():
                 token.delete()
@@ -196,8 +198,6 @@ class UserRoleView(APIView):
     permission_classes = [IsAdminRole]
 
     def patch(self, request, pk):
-        from scheduling.services import change_role
-
         serializer = RoleSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = change_role(actor=request.user, user_id=pk, role=serializer.validated_data["role"])
@@ -213,7 +213,8 @@ class MyProfileView(APIView):
             # Serialises two first saves, which would otherwise both insert.
             User.objects.select_for_update(no_key=True).get(pk=request.user.pk)
             serializer = ProfileSerializer(
-                profile_of(request.user), data=request.data, partial=True)
+                profile_of(request.user), data=request.data, partial=True
+            )
             serializer.is_valid(raise_exception=True)
             serializer.save()
         return Response(serializer.data)
@@ -232,8 +233,7 @@ class MentorListView(generics.ListAPIView):
 
     serializer_class = ProfileSerializer
     filterset_class = MentorFilter
-    queryset = User.objects.filter(role=User.Role.MENTOR, is_active=True).select_related(
-        "profile")
+    queryset = User.objects.filter(role=User.Role.MENTOR, is_active=True).select_related("profile")
 
     def list(self, request, *args, **kwargs):
         page = self.paginate_queryset(self.filter_queryset(self.get_queryset()))

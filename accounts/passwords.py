@@ -46,7 +46,8 @@ def request_reset(*, email):
         return
     _lock(user.pk)
     waiting = Notification.objects.filter(
-        recipient=user, kind=outbox.Kind.PASSWORD_RESET, status__in=outbox.UNSENT)
+        recipient=user, kind=outbox.Kind.PASSWORD_RESET, status__in=outbox.UNSENT
+    )
     if not waiting.exists():
         outbox.enqueue(outbox.Kind.PASSWORD_RESET, recipient=user)
 
@@ -55,13 +56,15 @@ def request_reset(*, email):
 def confirm_reset(*, uid, token, password):
     try:
         user = _lock(int(force_str(urlsafe_base64_decode(uid))))
-    except (ValueError, OverflowError):
+    except ValueError, OverflowError:
         user = None
     if user is None or not default_token_generator.check_token(user, token):
-        raise ValidationError({
-            "detail": "This reset link is not valid. Ask for a new one.",
-            "code": "invalid_reset_link",
-        })
+        raise ValidationError(
+            {
+                "detail": "This reset link is not valid. Ask for a new one.",
+                "code": "invalid_reset_link",
+            }
+        )
     check_password_strength(password, user)
     _set_password(user, password)
     logger.info("password_reset user_id=%s", user.pk)
