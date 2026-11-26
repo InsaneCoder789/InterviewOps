@@ -56,6 +56,7 @@ marked by a timestamp (slot) or a status and timestamp (booking).
 | `booking_no_student_overlap` | exclusion, `booked` rows only | one student's active bookings do not overlap |
 | `booking_cancel_fields_consistent` | check | cancellation fields are set exactly when the status is `cancelled` |
 | `user_role_valid` | check | the role is one of the three values |
+| `user_email_ci_unique` | unique index | one account per email address, ignoring case |
 | `booking_times_match_slot` | deferred trigger | an active booking has its slot's times |
 | `invitation_one_open_per_email` | partial unique index | one open invitation per address |
 | `notification_one_reminder_per_person` | partial unique index | one reminder per person per booking |

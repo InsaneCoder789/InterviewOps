@@ -16,12 +16,17 @@ databases do not work.
 With `DJANGO_DEBUG` and `DATABASE_URL` exported:
 
 ```bash
+pip install -r requirements-dev.txt
+ruff check . && ruff format --check .
 python manage.py makemigrations --check --dry-run
-python manage.py test tests
+coverage run -p manage.py test tests && coverage combine && coverage report
+pip-audit -r requirements.txt
 ```
 
 The [test workflow](.github/workflows/test.yml) runs these and also checks
-production settings, migrations, restores and the container. The
+production settings, migrations, restores and the container. Coverage below 95%
+fails. The stress test takes `STRESS_OPERATIONS` and `STRESS_SEED` for longer
+or repeated runs. The
 database user needs permission to create the test database and the `btree_gist`
 extension.
 

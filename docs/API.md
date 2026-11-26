@@ -331,7 +331,7 @@ target_roles, topics, timezone`. It never includes an email address.
 | `GET /api/mentors/` | signed in | active mentors, paginated; `topic` (exact, ignoring case), `search` (username or display name) |
 
 Anyone signed in may read their own and any active mentor's profile; a mentor may
-read an active student who has booked them; admins read all.
+read an active student who holds a booking with them; admins read all.
 
 `experience_level` is `student`, `entry`, `mid`, `senior` or empty. `timezone` is
 an IANA name. `topics` and `target_roles` hold up to 15 entries of 60 characters,
@@ -595,8 +595,8 @@ bookable again, unsent notices are withdrawn and both participants are emailed.
 |---|---|
 | 404 | `{"detail": "Booking not found."}` (missing, or not yours) |
 | 409 | `{"detail": "This booking is already cancelled."}` |
-| 409 | `{"detail": "A session that has started cannot be cancelled."}` |
-| 409 | `{"detail": "Students cannot cancel less than 2 hours before the session."}` |
+| 409 | `{"detail": "A session that has started cannot be cancelled or moved."}` |
+| 409 | `{"detail": "Students cannot cancel or move a session less than 2 hours before it starts."}` |
 
 Statuses: `200`, `401`, `404`, `409`.
 

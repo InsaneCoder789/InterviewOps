@@ -1,6 +1,7 @@
 # Operations
 
-Nothing is deployed. These steps have been checked locally only where stated.
+Nothing is deployed. The Compose stack and backup scripts have been run locally;
+the deploy steps have not.
 
 ## Run locally
 
@@ -21,9 +22,10 @@ Without Docker, follow the quickstart in the README, set
 
 ## CI
 
-`.github/workflows/test.yml` runs on pushes to `main` and on pull requests:
-missing-migration check, tests, production settings check, migration reversal,
-backup and restore, then an image build with a sign-in smoke test.
+`.github/workflows/test.yml` runs on pushes to `main` and on pull requests: lint,
+formatting and dependency audit; missing-migration check, tests with coverage,
+production settings check, migration reversal, backup and restore; and an image
+build with a sign-in smoke test.
 
 ## Deploy
 
@@ -38,6 +40,9 @@ backup and restore, then an image build with a sign-in smoke test.
 5. Run the **deploy** workflow. It checks that the tests passed for the commit,
    triggers both services and checks `/health/`. Confirm the new release in the
    Render dashboard.
+
+Upgrading refuses to continue if two accounts share an email address apart from
+letter case; the error names their user IDs. Fix those, then migrate again.
 
 The API runs migrations when it starts. A release whose migration is not
 compatible with the running worker needs the worker stopped first. The upgrade

@@ -27,9 +27,9 @@
   <a href="#known-limits">Known limits</a>
 </p>
 
-> **Project status:** The backend is intended to run locally. The container image
-> and Render blueprint have not been built or deployed, and there is no hosted
-> instance. See [deployment status](#deployment-status) before using them.
+> **Project status:** The backend runs locally, directly or with Docker Compose.
+> It has not been deployed and there is no hosted instance. See
+> [deployment status](#deployment-status).
 
 ## The problem
 
@@ -268,13 +268,18 @@ python manage.py test tests
 
 The database user needs permission to create the test database.
 
-The suite includes concurrency tests that use real threads and real
-PostgreSQL connections. To check that they can fail, the student lock, the mentor
-lock, the slot lock and `SKIP LOCKED` were each removed in turn, and the
-concurrency suite caught every removal. The student and mentor lock failures come
-from deadlocks that depend on timing, so a single run without either lock can
-still pass. A query-count test pins the slot and booking list endpoints at 3
-queries for 1 or 15 rows.
+| Kind | What it checks |
+|---|---|
+| Behaviour | every rule, refusal and email |
+| Access policy | every route called by every kind of caller |
+| Hostile input | seeded random and malformed requests never cause a server error |
+| Concurrency | real threads on real PostgreSQL, including a randomized stress test that checks invariants |
+| Processes | the worker against a local mail server, including being killed mid-send |
+| Upgrades | the email uniqueness migration |
+
+For lint, formatting, coverage and the dependency audit, see
+[CONTRIBUTING.md](CONTRIBUTING.md#check-your-change). A passing run of timing
+tests is not proof that no race exists.
 
 The [test workflow](.github/workflows/test.yml) also checks migrations and
 production settings, restores a backup and builds the container. See
@@ -282,8 +287,9 @@ production settings, restores a backup and builds the container. See
 
 ## Deployment status
 
-`Dockerfile` and `render.yaml` are provided. **They have not been built or
-deployed yet.** If you try them:
+The container image builds and the Compose stack has been run locally.
+**Nothing has been deployed**, and `render.yaml` has not been applied. If you try
+it:
 
 - Check current Render plans and pricing first. The blueprint's background worker
   uses a paid service type.
@@ -334,7 +340,7 @@ tests/               API, email and concurrency tests
 scripts/             backup and restore
 docs/                architecture, API reference, investigation notes, brand
 .github/             test and deploy workflows, templates
-Dockerfile           container image (not yet built)
+Dockerfile           container image
 render.yaml          Render blueprint (not yet deployed)
 ```
 
