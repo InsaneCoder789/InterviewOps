@@ -1,0 +1,153 @@
+/* Open End tokens. Source of values: DESIGN.md sections 3 to 7. */
+
+:root {
+  color-scheme: light;
+
+  /* Colour, light */
+  --paper: #F7F8FA;
+  --concrete: #E6E8EC;
+  --surface: #FFFFFF;
+  --ink: #121826;
+  --muted: #4C5568;
+  --edge: #6B7489;
+  --line: #C2C7D1; /* decorative only, never carries meaning */
+  --primary: #3447D4;
+  --booked: #0B6B52;
+  --conflict: #A63C26;
+  --waiting: #7D5200;
+  --on-fill: #FFFFFF;
+  --ground: var(--concrete); /* editorial light */
+  --scrim: rgb(18 24 38 / 60%);
+
+  /* Families. Font files are not bundled here; installed copies are used if present. */
+  --font-display: "IBM Plex Sans Condensed", "Roboto Condensed", "Arial Narrow", system-ui, sans-serif;
+  --font-sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  /* Type, editorial */
+  --t-display-size: clamp(3.5rem, 11vw, 10rem);
+  --t-display-line: 0.9;
+  --t-display-track: -0.01em;
+  --t-title-size: clamp(2.5rem, 6.5vw, 5.5rem);
+  --t-title-line: 0.95;
+  --t-head-size: 2rem;
+  --t-head-line: 1.1;
+  --t-sub-size: 1.375rem;
+  --t-sub-line: 1.3;
+  --t-lead-size: clamp(1.25rem, 2vw, 1.5rem);
+  --t-lead-line: 1.45;
+  --t-body-size: 1.125rem;
+  --t-body-line: 1.6;
+  --t-small-size: 0.9375rem;
+  --t-small-line: 1.5;
+  --t-code-size: 0.9375rem;
+  --t-code-line: 1.6;
+  --measure: 68ch;
+
+  /* Spacing */
+  --s-4: 4px;
+  --s-8: 8px;
+  --s-12: 12px;
+  --s-16: 16px;
+  --s-24: 24px;
+  --s-32: 32px;
+  --s-48: 48px;
+  --s-64: 64px;
+  --s-96: 96px;
+  --s-160: 160px;
+  --section-gap: var(--s-160);
+  --block-gap: var(--s-32);
+  --page-margin: var(--s-32);
+  --target-min: 44px;
+
+  /* Shape. No shadows, blur or gradients. */
+  --r-0: 0;
+  --r-1: 2px;
+  --rule-1: 1px;
+  --rule-2: 2px;
+  --rule-4: 4px;
+
+  /* Focus */
+  --focus: 3px solid var(--primary);
+  --focus-offset: 2px;
+
+  /* Motion */
+  --d-feedback: 120ms;
+  --d-dialog: 200ms;
+  --d-settle: 400ms;
+  --ease: cubic-bezier(.2, 0, 0, 1);
+}
+
+/* Dark: follows the system unless data-theme overrides it. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper: #0D111A;
+    --concrete: #1D2434;
+    --surface: #151B28;
+    --ink: #E8ECF4;
+    --muted: #A3AEC3;
+    --edge: #7C89A5;
+    --line: #2C364B;
+    --primary: #8C9BFF;
+    --booked: #4FD1A5;
+    --conflict: #FF8A70;
+    --waiting: #F0BC55;
+    --on-fill: #0D111A;
+    --ground: var(--paper);
+    --scrim: rgb(232 236 244 / 60%);
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #0D111A;
+  --concrete: #1D2434;
+  --surface: #151B28;
+  --ink: #E8ECF4;
+  --muted: #A3AEC3;
+  --edge: #7C89A5;
+  --line: #2C364B;
+  --primary: #8C9BFF;
+  --booked: #4FD1A5;
+  --conflict: #FF8A70;
+  --waiting: #F0BC55;
+  --on-fill: #0D111A;
+  --ground: var(--paper);
+  --scrim: rgb(232 236 244 / 60%);
+}
+
+/* Tool app: calmer ground, smaller type, tighter spacing. */
+[data-surface="app"] {
+  --ground: var(--paper);
+  --t-title-size: 1.75rem;
+  --t-title-line: 1.2;
+  --t-head-size: 1.375rem;
+  --t-head-line: 1.25;
+  --t-sub-size: 1.125rem;
+  --t-sub-line: 1.35;
+  --t-body-size: 1rem;
+  --t-body-line: 1.5;
+  --t-small-size: 0.875rem;
+  --t-small-line: 1.45;
+  --t-code-line: 1.5;
+  --section-gap: var(--s-48);
+  --block-gap: var(--s-16);
+  --row-height: 48px;
+  --block-height: 32px;
+}
+
+@media (max-width: 899px) {
+  :root {
+    --section-gap: var(--s-96);
+    --page-margin: var(--s-16);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --d-feedback: 0ms;
+    --d-dialog: 0ms;
+    --d-settle: 0ms;
+  }
+}
