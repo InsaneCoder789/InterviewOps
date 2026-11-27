@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Scheduling | InterviewOps design preview</title>
+  <link rel="icon" href="../../packages/brand/mark.svg">
+  <link rel="stylesheet" href="../../packages/brand/fonts.css">
+  <link rel="stylesheet" href="../../packages/brand/tokens.css">
+  <link rel="stylesheet" href="style.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Workspace">
+      <a class="brand" href="../story/"><img src="../../packages/brand/logo.svg" alt="InterviewOps"></a>
+      <div class="workspace-label">Student workspace <span>Design preview</span></div>
+      <nav class="navigation" aria-label="Preview sections">
+        <a class="nav-link current" href="#schedule" aria-current="page"><span class="nav-icon" aria-hidden="true">▦</span> Schedule</a>
+        <a class="nav-link" href="#sessions"><span class="nav-icon" aria-hidden="true">≡</span> Sessions</a>
+        <a class="nav-link" href="#mentors"><span class="nav-icon" aria-hidden="true">◌</span> Mentors</a>
+        <a class="nav-link" href="#feedback"><span class="nav-icon" aria-hidden="true">▤</span> Feedback</a>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="preview-marker"><span></span> Illustrative data</div>
+        <p>This is a visual preview. It is not connected to the InterviewOps API.</p>
+        <a href="../story/">Read the story</a>
+      </div>
+    </aside>
+    <main id="main" class="main">
+      <div class="topbar"><span>Student workspace</span><a href="../story/">Back to the story</a></div>
+      <div class="content">
+        <header class="page-heading" id="schedule">
+          <div><h1>Scheduling</h1><p class="intro">See your upcoming sessions and make space for practice.</p></div>
+          <a class="button" href="#mentors">Explore mentors <span aria-hidden="true">↗</span></a>
+        </header>
+        <div class="preview-notice"><strong>Design preview</strong><span>These sessions and mentors are fictional. No bookings can be made here.</span></div>
+        <section class="schedule-section" aria-labelledby="schedule-heading">
+          <div class="section-heading"><div><h2 id="schedule-heading">Your day</h2><p>A closer look at the time you’ve set aside.</p></div><div class="schedule-controls" aria-label="Example day selector"><button type="button" id="previous-day" aria-label="Previous example day">‹</button><span id="selected-day" aria-live="polite">Saturday, 12 December</span><button type="button" id="next-day" aria-label="Next example day">›</button><span class="view-label">Day</span></div></div>
+          <div class="timeline-shell">
+            <div class="timeline-label"><span>YOUR DAY</span><span>Asia/Kolkata</span></div>
+            <div class="timeline-scroll" role="region" aria-label="Illustrative day timeline" tabindex="0">
+              <div class="timeline">
+                <div class="time-axis" aria-hidden="true"><span>09:00</span><span>10:00</span><span>11:00</span><span>12:00</span><span>13:00</span><span>14:00</span><span>15:00</span></div>
+                <div class="timeline-row"><span class="row-label">Sessions</span><div class="time-grid" id="timeline-grid"><div class="timeline-event" style="--start:1;--duration:1"><span>System design</span><small>10:00–11:00</small></div></div></div>
+              </div>
+            </div>
+            <p class="timeline-hint">The timeline is illustrative. Session details are also listed below.</p>
+          </div>
+        </section>
+        <section id="sessions" class="sessions-section" aria-labelledby="sessions-heading">
+          <div class="section-heading compact"><div><p class="section-number">02 / YOUR SESSIONS</p><h2 id="sessions-heading">Coming up</h2><p>Everything you need before the conversation.</p></div><span class="text-note">Local time · Asia/Kolkata</span></div>
+          <div class="session-list">
+            <article class="session-row"><div class="date"><strong>12</strong><span>DEC</span></div><div class="session-detail"><h3>System design</h3><p>With Anika Rao <span>·</span> 10:00–11:00</p></div><div class="session-status"><span class="status-dot"></span> Booked</div><span class="row-end">Example session</span></article>
+            <article class="session-row"><div class="date"><strong>18</strong><span>DEC</span></div><div class="session-detail"><h3>Behavioural interview</h3><p>With Dev Mehta <span>·</span> 14:00–15:00</p></div><div class="session-status"><span class="status-dot"></span> Booked</div><span class="row-end">Example session</span></article>
+          </div>
+        </section>
+        <div class="lower-grid"><section id="mentors" aria-labelledby="mentors-heading"><p class="section-number">03 / FIND A SESSION</p><h2 id="mentors-heading">Practice with a mentor.</h2><p>Explore topics and find a conversation that helps you prepare.</p><div class="mentor-row"><span class="avatar">AR</span><span><strong>Anika Rao</strong><small>System design · Backend engineering</small></span><span class="mentor-meta">Illustrative</span></div><div class="mentor-row"><span class="avatar">DM</span><span><strong>Dev Mehta</strong><small>Behavioural interviews · Career conversations</small></span><span class="mentor-meta">Illustrative</span></div></section><section id="feedback" class="feedback-panel" aria-labelledby="feedback-heading"><p class="section-number">04 / KEEP IMPROVING</p><h2 id="feedback-heading">Take the useful<br>parts forward.</h2><p>After a session, mentor observations and next steps have a place to live.</p><div class="feedback-empty"><span class="empty-mark" aria-hidden="true">≡</span><div><strong>Feedback will appear here</strong><p>Once a mentor has submitted it.</p></div></div></section></div>
+        <footer><span>InterviewOps</span><span>Illustrative product design · No live data</span></footer>
+      </div>
+    </main>
+  </div>
+</body>
+</html>
