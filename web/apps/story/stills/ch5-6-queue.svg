@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" class="io-still" viewBox="0 0 720 566" width="720" height="566" role="img" aria-labelledby="ch5-6-queue-w-t ch5-6-queue-w-d">
+<title id="ch5-6-queue-w-t">Lock restored: the requests queue</title>
+<desc id="ch5-6-queue-w-d">With the student row lock restored, one request is booked with 201 and the next receives 409, You already have a booking at this time.</desc>
+<style>.io-still{--io-ground:var(--ground,#E6E8EC);--io-surface:var(--surface,#FFFFFF);--io-ink:var(--ink,#121826);--io-muted:var(--muted,#4C5568);--io-edge:var(--edge,#6B7489);--io-line:var(--line,#C2C7D1);--io-primary:var(--primary,#3447D4);--io-booked:var(--booked,#0B6B52);--io-conflict:var(--conflict,#A63C26);--io-waiting:var(--waiting,#7D5200);--io-on-fill:var(--on-fill,#FFFFFF);}@media (prefers-color-scheme:dark){.io-still{--io-ground:var(--ground,#0D111A);--io-surface:var(--surface,#151B28);--io-ink:var(--ink,#E8ECF4);--io-muted:var(--muted,#A3AEC3);--io-edge:var(--edge,#7C89A5);--io-line:var(--line,#2C364B);--io-primary:var(--primary,#8C9BFF);--io-booked:var(--booked,#4FD1A5);--io-conflict:var(--conflict,#FF8A70);--io-waiting:var(--waiting,#F0BC55);--io-on-fill:var(--on-fill,#0D111A);}}.io-still text{font-family:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;font-variant-numeric:tabular-nums}.io-still .mono{font-family:"IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace}.io-still .b{font-weight:600}.io-still .f-ground{fill:var(--io-ground)}.io-still .s-ground{stroke:var(--io-ground);fill:none}.io-still .f-surface{fill:var(--io-surface)}.io-still .s-surface{stroke:var(--io-surface);fill:none}.io-still .f-ink{fill:var(--io-ink)}.io-still .s-ink{stroke:var(--io-ink);fill:none}.io-still .f-muted{fill:var(--io-muted)}.io-still .s-muted{stroke:var(--io-muted);fill:none}.io-still .f-edge{fill:var(--io-edge)}.io-still .s-edge{stroke:var(--io-edge);fill:none}.io-still .f-line{fill:var(--io-line)}.io-still .s-line{stroke:var(--io-line);fill:none}.io-still .f-primary{fill:var(--io-primary)}.io-still .s-primary{stroke:var(--io-primary);fill:none}.io-still .f-booked{fill:var(--io-booked)}.io-still .s-booked{stroke:var(--io-booked);fill:none}.io-still .f-conflict{fill:var(--io-conflict)}.io-still .s-conflict{stroke:var(--io-conflict);fill:none}.io-still .f-waiting{fill:var(--io-waiting)}.io-still .s-waiting{stroke:var(--io-waiting);fill:none}.io-still .f-on-fill{fill:var(--io-on-fill)}.io-still .s-on-fill{stroke:var(--io-on-fill);fill:none}</style>
+<defs><pattern id="ch5-6-queue-w-hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="3" height="8" class="f-ink"/></pattern></defs>
+<rect width="720" height="566" class="f-ground"/>
+<text x="16" y="28" font-size="16" text-anchor="start" class="f-muted">Order of events, downward</text>
+<path d="M16 40L704 40" class="s-edge" stroke-width="1" />
+<rect x="17" y="52" width="686" height="36" class="s-ink" stroke-width="2"/>
+<text x="28" y="72" font-size="16" text-anchor="start" class="f-ink b">Student lock restored</text>
+<rect x="126" y="116" width="48" height="36" class="f-primary" />
+<rect x="122" y="112" width="4" height="44" class="f-ink" />
+<text x="150" y="140.3" font-size="18" text-anchor="middle" class="f-on-fill b">A</text>
+<rect x="546" y="116" width="48" height="36" class="f-surface" />
+<rect x="546" y="116" width="48" height="36" fill="url(#ch5-6-queue-w-hatch)"/>
+<path d="M546 116L594 116" class="s-ink" stroke-width="2" />
+<path d="M546 152L594 152" class="s-ink" stroke-width="2" />
+<rect x="542" y="112" width="4" height="44" class="f-ink" />
+<rect x="558.6" y="120.5" width="22.8" height="27" class="f-surface" />
+<text x="570" y="140.3" font-size="18" text-anchor="middle" class="f-ink b">B</text>
+<rect x="230" y="188" width="260" height="48" class="f-surface" />
+<rect x="230" y="188" width="260" height="48" class="s-edge" stroke-width="2"/>
+<text x="360" y="217.6" font-size="16" text-anchor="middle" class="f-ink b">the student row</text>
+<path d="M222 180H498V202H491V191H229V202H222Z" class="f-ink" />
+<text x="360" y="260" font-size="16" text-anchor="middle" class="f-ink b">A holds the lock</text>
+<text x="360" y="279" font-size="14" text-anchor="middle" class="f-ink mono">FOR NO KEY UPDATE</text>
+<text x="16" y="322" font-size="16" text-anchor="start" class="f-muted">One queue, one at a time</text>
+<rect x="20" y="342" width="680" height="44" class="f-booked" />
+<rect x="16" y="338" width="4" height="52" class="f-ink" />
+<text x="360" y="369.6" font-size="16" text-anchor="middle" class="f-on-fill b">A first: 201 booked</text>
+<path d="M20 406H700V416L688 428L700 440V450H20Z" class="f-conflict" />
+<rect x="16" y="402" width="4" height="52" class="f-ink" />
+<text x="360" y="433.6" font-size="16" text-anchor="middle" class="f-on-fill b">B next: 409</text>
+<text x="16" y="488" font-size="16" text-anchor="start" class="f-ink b">B waits, then sees a finished result: “You already have a booking at this</text>
+<text x="16" y="510" font-size="16" text-anchor="start" class="f-ink b">time.”</text>
+<text x="16" y="540" font-size="16" text-anchor="start" class="f-muted">Which request goes first is not fixed. Here A is drawn first.</text>
+</svg>

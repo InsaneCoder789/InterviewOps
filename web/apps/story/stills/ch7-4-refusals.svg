@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" class="io-still" viewBox="0 0 720 518" width="720" height="518" role="img" aria-labelledby="ch7-4-refusals-w-t ch7-4-refusals-w-d">
+<title id="ch7-4-refusals-w-t">Not yours reads as not there</title>
+<desc id="ch7-4-refusals-w-d">A student asking for another student&#x27;s booking and for a booking that never existed gets the same 404 Not Found. A student asking to publish a slot is stopped with 403 before any lookup.</desc>
+<style>.io-still{--io-ground:var(--ground,#E6E8EC);--io-surface:var(--surface,#FFFFFF);--io-ink:var(--ink,#121826);--io-muted:var(--muted,#4C5568);--io-edge:var(--edge,#6B7489);--io-line:var(--line,#C2C7D1);--io-primary:var(--primary,#3447D4);--io-booked:var(--booked,#0B6B52);--io-conflict:var(--conflict,#A63C26);--io-waiting:var(--waiting,#7D5200);--io-on-fill:var(--on-fill,#FFFFFF);}@media (prefers-color-scheme:dark){.io-still{--io-ground:var(--ground,#0D111A);--io-surface:var(--surface,#151B28);--io-ink:var(--ink,#E8ECF4);--io-muted:var(--muted,#A3AEC3);--io-edge:var(--edge,#7C89A5);--io-line:var(--line,#2C364B);--io-primary:var(--primary,#8C9BFF);--io-booked:var(--booked,#4FD1A5);--io-conflict:var(--conflict,#FF8A70);--io-waiting:var(--waiting,#F0BC55);--io-on-fill:var(--on-fill,#0D111A);}}.io-still text{font-family:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;font-variant-numeric:tabular-nums}.io-still .mono{font-family:"IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace}.io-still .b{font-weight:600}.io-still .f-ground{fill:var(--io-ground)}.io-still .s-ground{stroke:var(--io-ground);fill:none}.io-still .f-surface{fill:var(--io-surface)}.io-still .s-surface{stroke:var(--io-surface);fill:none}.io-still .f-ink{fill:var(--io-ink)}.io-still .s-ink{stroke:var(--io-ink);fill:none}.io-still .f-muted{fill:var(--io-muted)}.io-still .s-muted{stroke:var(--io-muted);fill:none}.io-still .f-edge{fill:var(--io-edge)}.io-still .s-edge{stroke:var(--io-edge);fill:none}.io-still .f-line{fill:var(--io-line)}.io-still .s-line{stroke:var(--io-line);fill:none}.io-still .f-primary{fill:var(--io-primary)}.io-still .s-primary{stroke:var(--io-primary);fill:none}.io-still .f-booked{fill:var(--io-booked)}.io-still .s-booked{stroke:var(--io-booked);fill:none}.io-still .f-conflict{fill:var(--io-conflict)}.io-still .s-conflict{stroke:var(--io-conflict);fill:none}.io-still .f-waiting{fill:var(--io-waiting)}.io-still .s-waiting{stroke:var(--io-waiting);fill:none}.io-still .f-on-fill{fill:var(--io-on-fill)}.io-still .s-on-fill{stroke:var(--io-on-fill);fill:none}</style>
+<defs><pattern id="ch7-4-refusals-w-hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="3" height="8" class="f-ink"/></pattern></defs>
+<rect width="720" height="518" class="f-ground"/>
+<text x="16" y="28" font-size="16" text-anchor="start" class="f-muted">Order of events, downward</text>
+<path d="M16 40L704 40" class="s-edge" stroke-width="1" />
+<text x="16" y="68" font-size="16" text-anchor="start" class="f-ink b">Student 1 asks for:</text>
+<text x="16" y="96" font-size="16" text-anchor="start" class="f-ink">booking 2, which belongs to student 2</text>
+<path d="M20 112H704V120L692 132L704 144V152H20Z" class="f-conflict" />
+<rect x="16" y="108" width="4" height="48" class="f-ink" />
+<text x="362" y="137.6" font-size="16" text-anchor="middle" class="f-on-fill b mono">404 Not Found</text>
+<text x="16" y="186" font-size="16" text-anchor="start" class="f-ink">booking 99, which never existed</text>
+<path d="M20 202H704V210L692 222L704 234V242H20Z" class="f-conflict" />
+<rect x="16" y="198" width="4" height="48" class="f-ink" />
+<text x="362" y="227.6" font-size="16" text-anchor="middle" class="f-on-fill b mono">404 Not Found</text>
+<text x="16" y="272" font-size="22" text-anchor="start" class="f-ink b">The same answer both times.</text>
+<text x="16" y="328" font-size="16" text-anchor="start" class="f-ink b">Student 1 asks to publish a slot:</text>
+<path d="M360 342L360 380" class="s-ink" stroke-width="2" />
+<path d="M360 390L354 378L366 378Z" class="f-ink" />
+<rect x="8" y="394" width="704" height="14" class="f-ink" />
+<text x="16" y="434" font-size="16" text-anchor="start" class="f-conflict b mono">403 Forbidden</text>
+<text x="16" y="460" font-size="16" text-anchor="start" class="f-ink">The role may not do this. Stopped before any lookup.</text>
+<text x="16" y="492" font-size="16" text-anchor="start" class="f-muted">Booking a slot a student cannot see also answers 404.</text>
+</svg>

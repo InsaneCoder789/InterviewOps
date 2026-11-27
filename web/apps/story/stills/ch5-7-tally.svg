@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" class="io-still" viewBox="0 0 720 476" width="720" height="476" role="img" aria-labelledby="ch5-7-tally-w-t ch5-7-tally-w-d">
+<title id="ch5-7-tally-w-t">Recorded outcomes with the lock removed</title>
+<desc id="ch5-7-tally-w-d">Sixty request outcomes from 30 rounds of two requests: 30 bookings created, 27 clean conflicts and 3 deadlocks. A local test with the lock removed on purpose; counts vary between runs.</desc>
+<style>.io-still{--io-ground:var(--ground,#E6E8EC);--io-surface:var(--surface,#FFFFFF);--io-ink:var(--ink,#121826);--io-muted:var(--muted,#4C5568);--io-edge:var(--edge,#6B7489);--io-line:var(--line,#C2C7D1);--io-primary:var(--primary,#3447D4);--io-booked:var(--booked,#0B6B52);--io-conflict:var(--conflict,#A63C26);--io-waiting:var(--waiting,#7D5200);--io-on-fill:var(--on-fill,#FFFFFF);}@media (prefers-color-scheme:dark){.io-still{--io-ground:var(--ground,#0D111A);--io-surface:var(--surface,#151B28);--io-ink:var(--ink,#E8ECF4);--io-muted:var(--muted,#A3AEC3);--io-edge:var(--edge,#7C89A5);--io-line:var(--line,#2C364B);--io-primary:var(--primary,#8C9BFF);--io-booked:var(--booked,#4FD1A5);--io-conflict:var(--conflict,#FF8A70);--io-waiting:var(--waiting,#F0BC55);--io-on-fill:var(--on-fill,#0D111A);}}.io-still text{font-family:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;font-variant-numeric:tabular-nums}.io-still .mono{font-family:"IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace}.io-still .b{font-weight:600}.io-still .f-ground{fill:var(--io-ground)}.io-still .s-ground{stroke:var(--io-ground);fill:none}.io-still .f-surface{fill:var(--io-surface)}.io-still .s-surface{stroke:var(--io-surface);fill:none}.io-still .f-ink{fill:var(--io-ink)}.io-still .s-ink{stroke:var(--io-ink);fill:none}.io-still .f-muted{fill:var(--io-muted)}.io-still .s-muted{stroke:var(--io-muted);fill:none}.io-still .f-edge{fill:var(--io-edge)}.io-still .s-edge{stroke:var(--io-edge);fill:none}.io-still .f-line{fill:var(--io-line)}.io-still .s-line{stroke:var(--io-line);fill:none}.io-still .f-primary{fill:var(--io-primary)}.io-still .s-primary{stroke:var(--io-primary);fill:none}.io-still .f-booked{fill:var(--io-booked)}.io-still .s-booked{stroke:var(--io-booked);fill:none}.io-still .f-conflict{fill:var(--io-conflict)}.io-still .s-conflict{stroke:var(--io-conflict);fill:none}.io-still .f-waiting{fill:var(--io-waiting)}.io-still .s-waiting{stroke:var(--io-waiting);fill:none}.io-still .f-on-fill{fill:var(--io-on-fill)}.io-still .s-on-fill{stroke:var(--io-on-fill);fill:none}</style>
+<defs><pattern id="ch5-7-tally-w-hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="3" height="8" class="f-ink"/></pattern></defs>
+<rect width="720" height="476" class="f-ground"/>
+<text x="16" y="28" font-size="16" text-anchor="start" class="f-muted">Recorded outcomes, one mark per request</text>
+<path d="M16 40L704 40" class="s-edge" stroke-width="1" />
+<rect x="17" y="52" width="686" height="36" class="s-ink" stroke-width="2"/>
+<text x="28" y="72" font-size="16" text-anchor="start" class="f-ink b">Lock removed on purpose, in a local test</text>
+<text x="16" y="116" font-size="16" text-anchor="start" class="f-ink b">30 rounds, two requests each</text>
+<text x="16" y="154" font-size="16" text-anchor="start" class="f-booked b">30  booking created</text>
+<rect x="19" y="170" width="18" height="18" class="f-booked" />
+<rect x="64.8667" y="170" width="18" height="18" class="f-booked" />
+<rect x="110.733" y="170" width="18" height="18" class="f-booked" />
+<rect x="156.6" y="170" width="18" height="18" class="f-booked" />
+<rect x="202.467" y="170" width="18" height="18" class="f-booked" />
+<rect x="248.333" y="170" width="18" height="18" class="f-booked" />
+<rect x="294.2" y="170" width="18" height="18" class="f-booked" />
+<rect x="340.067" y="170" width="18" height="18" class="f-booked" />
+<rect x="385.933" y="170" width="18" height="18" class="f-booked" />
+<rect x="431.8" y="170" width="18" height="18" class="f-booked" />
+<rect x="477.667" y="170" width="18" height="18" class="f-booked" />
+<rect x="523.533" y="170" width="18" height="18" class="f-booked" />
+<rect x="569.4" y="170" width="18" height="18" class="f-booked" />
+<rect x="615.267" y="170" width="18" height="18" class="f-booked" />
+<rect x="661.133" y="170" width="18" height="18" class="f-booked" />
+<rect x="19" y="198" width="18" height="18" class="f-booked" />
+<rect x="64.8667" y="198" width="18" height="18" class="f-booked" />
+<rect x="110.733" y="198" width="18" height="18" class="f-booked" />
+<rect x="156.6" y="198" width="18" height="18" class="f-booked" />
+<rect x="202.467" y="198" width="18" height="18" class="f-booked" />
+<rect x="248.333" y="198" width="18" height="18" class="f-booked" />
+<rect x="294.2" y="198" width="18" height="18" class="f-booked" />
+<rect x="340.067" y="198" width="18" height="18" class="f-booked" />
+<rect x="385.933" y="198" width="18" height="18" class="f-booked" />
+<rect x="431.8" y="198" width="18" height="18" class="f-booked" />
+<rect x="477.667" y="198" width="18" height="18" class="f-booked" />
+<rect x="523.533" y="198" width="18" height="18" class="f-booked" />
+<rect x="569.4" y="198" width="18" height="18" class="f-booked" />
+<rect x="615.267" y="198" width="18" height="18" class="f-booked" />
+<rect x="661.133" y="198" width="18" height="18" class="f-booked" />
+<text x="16" y="256" font-size="16" text-anchor="start" class="f-conflict b">27  clean conflict</text>
+<path d="M19.0 272H37.0V275.6L28.9 281.0L37.0 286.4V290H19.0Z" class="f-conflict" />
+<path d="M64.86666666666667 272H82.86666666666667V275.6L74.76666666666668 281.0L82.86666666666667 286.4V290H64.86666666666667Z" class="f-conflict" />
+<path d="M110.73333333333333 272H128.73333333333335V275.6L120.63333333333334 281.0L128.73333333333335 286.4V290H110.73333333333333Z" class="f-conflict" />
+<path d="M156.6 272H174.6V275.6L166.5 281.0L174.6 286.4V290H156.6Z" class="f-conflict" />
+<path d="M202.46666666666667 272H220.46666666666667V275.6L212.36666666666667 281.0L220.46666666666667 286.4V290H202.46666666666667Z" class="f-conflict" />
+<path d="M248.33333333333334 272H266.33333333333337V275.6L258.23333333333335 281.0L266.33333333333337 286.4V290H248.33333333333334Z" class="f-conflict" />
+<path d="M294.2 272H312.2V275.6L304.09999999999997 281.0L312.2 286.4V290H294.2Z" class="f-conflict" />
+<path d="M340.06666666666666 272H358.06666666666666V275.6L349.96666666666664 281.0L358.06666666666666 286.4V290H340.06666666666666Z" class="f-conflict" />
+<path d="M385.93333333333334 272H403.93333333333334V275.6L395.8333333333333 281.0L403.93333333333334 286.4V290H385.93333333333334Z" class="f-conflict" />
+<path d="M431.8 272H449.8V275.6L441.7 281.0L449.8 286.4V290H431.8Z" class="f-conflict" />
+<path d="M477.6666666666667 272H495.6666666666667V275.6L487.56666666666666 281.0L495.6666666666667 286.4V290H477.6666666666667Z" class="f-conflict" />
+<path d="M523.5333333333333 272H541.5333333333333V275.6L533.4333333333333 281.0L541.5333333333333 286.4V290H523.5333333333333Z" class="f-conflict" />
+<path d="M569.4 272H587.4V275.6L579.3 281.0L587.4 286.4V290H569.4Z" class="f-conflict" />
+<path d="M615.2666666666667 272H633.2666666666667V275.6L625.1666666666666 281.0L633.2666666666667 286.4V290H615.2666666666667Z" class="f-conflict" />
+<path d="M661.1333333333333 272H679.1333333333333V275.6L671.0333333333333 281.0L679.1333333333333 286.4V290H661.1333333333333Z" class="f-conflict" />
+<path d="M19.0 300H37.0V303.6L28.9 309.0L37.0 314.4V318H19.0Z" class="f-conflict" />
+<path d="M64.86666666666667 300H82.86666666666667V303.6L74.76666666666668 309.0L82.86666666666667 314.4V318H64.86666666666667Z" class="f-conflict" />
+<path d="M110.73333333333333 300H128.73333333333335V303.6L120.63333333333334 309.0L128.73333333333335 314.4V318H110.73333333333333Z" class="f-conflict" />
+<path d="M156.6 300H174.6V303.6L166.5 309.0L174.6 314.4V318H156.6Z" class="f-conflict" />
+<path d="M202.46666666666667 300H220.46666666666667V303.6L212.36666666666667 309.0L220.46666666666667 314.4V318H202.46666666666667Z" class="f-conflict" />
+<path d="M248.33333333333334 300H266.33333333333337V303.6L258.23333333333335 309.0L266.33333333333337 314.4V318H248.33333333333334Z" class="f-conflict" />
+<path d="M294.2 300H312.2V303.6L304.09999999999997 309.0L312.2 314.4V318H294.2Z" class="f-conflict" />
+<path d="M340.06666666666666 300H358.06666666666666V303.6L349.96666666666664 309.0L358.06666666666666 314.4V318H340.06666666666666Z" class="f-conflict" />
+<path d="M385.93333333333334 300H403.93333333333334V303.6L395.8333333333333 309.0L403.93333333333334 314.4V318H385.93333333333334Z" class="f-conflict" />
+<path d="M431.8 300H449.8V303.6L441.7 309.0L449.8 314.4V318H431.8Z" class="f-conflict" />
+<path d="M477.6666666666667 300H495.6666666666667V303.6L487.56666666666666 309.0L495.6666666666667 314.4V318H477.6666666666667Z" class="f-conflict" />
+<path d="M523.5333333333333 300H541.5333333333333V303.6L533.4333333333333 309.0L541.5333333333333 314.4V318H523.5333333333333Z" class="f-conflict" />
+<text x="16" y="358" font-size="16" text-anchor="start" class="f-conflict b">3  deadlock (40P01)</text>
+<rect x="20" y="375" width="16" height="16" class="s-conflict" stroke-width="2"/>
+<path d="M21 376L35 390" class="s-conflict" stroke-width="2" />
+<path d="M35 376L21 390" class="s-conflict" stroke-width="2" />
+<rect x="65.8667" y="375" width="16" height="16" class="s-conflict" stroke-width="2"/>
+<path d="M66.8667 376L80.8667 390" class="s-conflict" stroke-width="2" />
+<path d="M80.8667 376L66.8667 390" class="s-conflict" stroke-width="2" />
+<rect x="111.733" y="375" width="16" height="16" class="s-conflict" stroke-width="2"/>
+<path d="M112.733 376L126.733 390" class="s-conflict" stroke-width="2" />
+<path d="M126.733 376L112.733 390" class="s-conflict" stroke-width="2" />
+<text x="16" y="428" font-size="16" text-anchor="start" class="f-muted">PostgreSQL 18, local. Counts vary between runs. Not seen on a deployed system:</text>
+<text x="16" y="450" font-size="16" text-anchor="start" class="f-muted">there is none.</text>
+</svg>

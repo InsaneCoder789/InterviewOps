@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" class="io-still" viewBox="0 0 720 548" width="720" height="548" role="img" aria-labelledby="ch5-5-abort-w-t ch5-5-abort-w-d">
+<title id="ch5-5-abort-w-t">PostgreSQL aborts one transaction</title>
+<desc id="ch5-5-abort-w-d">PostgreSQL detects the deadlock, SQLSTATE 40P01, and aborts one transaction while the other proceeds. The picture does not say which. In this code the abort would be returned as a 500.</desc>
+<style>.io-still{--io-ground:var(--ground,#E6E8EC);--io-surface:var(--surface,#FFFFFF);--io-ink:var(--ink,#121826);--io-muted:var(--muted,#4C5568);--io-edge:var(--edge,#6B7489);--io-line:var(--line,#C2C7D1);--io-primary:var(--primary,#3447D4);--io-booked:var(--booked,#0B6B52);--io-conflict:var(--conflict,#A63C26);--io-waiting:var(--waiting,#7D5200);--io-on-fill:var(--on-fill,#FFFFFF);}@media (prefers-color-scheme:dark){.io-still{--io-ground:var(--ground,#0D111A);--io-surface:var(--surface,#151B28);--io-ink:var(--ink,#E8ECF4);--io-muted:var(--muted,#A3AEC3);--io-edge:var(--edge,#7C89A5);--io-line:var(--line,#2C364B);--io-primary:var(--primary,#8C9BFF);--io-booked:var(--booked,#4FD1A5);--io-conflict:var(--conflict,#FF8A70);--io-waiting:var(--waiting,#F0BC55);--io-on-fill:var(--on-fill,#0D111A);}}.io-still text{font-family:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;font-variant-numeric:tabular-nums}.io-still .mono{font-family:"IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace}.io-still .b{font-weight:600}.io-still .f-ground{fill:var(--io-ground)}.io-still .s-ground{stroke:var(--io-ground);fill:none}.io-still .f-surface{fill:var(--io-surface)}.io-still .s-surface{stroke:var(--io-surface);fill:none}.io-still .f-ink{fill:var(--io-ink)}.io-still .s-ink{stroke:var(--io-ink);fill:none}.io-still .f-muted{fill:var(--io-muted)}.io-still .s-muted{stroke:var(--io-muted);fill:none}.io-still .f-edge{fill:var(--io-edge)}.io-still .s-edge{stroke:var(--io-edge);fill:none}.io-still .f-line{fill:var(--io-line)}.io-still .s-line{stroke:var(--io-line);fill:none}.io-still .f-primary{fill:var(--io-primary)}.io-still .s-primary{stroke:var(--io-primary);fill:none}.io-still .f-booked{fill:var(--io-booked)}.io-still .s-booked{stroke:var(--io-booked);fill:none}.io-still .f-conflict{fill:var(--io-conflict)}.io-still .s-conflict{stroke:var(--io-conflict);fill:none}.io-still .f-waiting{fill:var(--io-waiting)}.io-still .s-waiting{stroke:var(--io-waiting);fill:none}.io-still .f-on-fill{fill:var(--io-on-fill)}.io-still .s-on-fill{stroke:var(--io-on-fill);fill:none}</style>
+<defs><pattern id="ch5-5-abort-w-hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="3" height="8" class="f-ink"/></pattern></defs>
+<rect width="720" height="548" class="f-ground"/>
+<text x="16" y="28" font-size="16" text-anchor="start" class="f-muted">Order of events, downward</text>
+<path d="M16 40L704 40" class="s-edge" stroke-width="1" />
+<rect x="17" y="52" width="686" height="36" class="s-ink" stroke-width="2"/>
+<text x="28" y="72" font-size="16" text-anchor="start" class="f-ink b">Lock removed on purpose, in a local test</text>
+<rect x="16" y="108" width="688" height="90" class="f-surface" />
+<rect x="16" y="108" width="688" height="90" class="s-conflict" stroke-width="3"/>
+<text x="360" y="136" font-size="18" text-anchor="middle" class="f-conflict b mono">deadlock detected</text>
+<text x="360" y="160" font-size="15" text-anchor="middle" class="f-ink mono">SQLSTATE 40P01</text>
+<text x="360" y="182" font-size="16" text-anchor="middle" class="f-ink">PostgreSQL steps in</text>
+<path d="M360 202L360 214" class="s-ink" stroke-width="2" />
+<path d="M360 224L354 212L366 212Z" class="f-ink" />
+<text x="16" y="244" font-size="16" text-anchor="start" class="f-muted">One transaction</text>
+<path d="M20 258L700 258" class="s-edge" stroke-width="2" />
+<path d="M20 302L700 302" class="s-edge" stroke-width="2" />
+<path d="M28 280L700 280" class="s-ink" stroke-width="2" />
+<rect x="16" y="254" width="4" height="52" class="f-ink" />
+<rect x="258" y="268" width="204" height="24" class="f-surface" />
+<text x="360" y="285.6" font-size="16" text-anchor="middle" class="f-ink b">aborted, rolled back</text>
+<text x="16" y="342" font-size="16" text-anchor="start" class="f-muted">The other transaction</text>
+<rect x="20" y="356" width="680" height="44" class="f-surface" />
+<rect x="16" y="352" width="4" height="52" class="f-ink" />
+<text x="360" y="383.6" font-size="16" text-anchor="middle" class="f-ink b">proceeds</text>
+<text x="16" y="440" font-size="16" text-anchor="start" class="f-ink b">Either A or B can be the one aborted.</text>
+<text x="16" y="470" font-size="16" text-anchor="start" class="f-ink">Detection starts after deadlock_timeout, 1 s by default.</text>
+<text x="16" y="500" font-size="16" text-anchor="start" class="f-conflict b">Here the abort surfaced as an unhandled database error, which the API would</text>
+<text x="16" y="522" font-size="16" text-anchor="start" class="f-conflict b">return as a 500.</text>
+</svg>

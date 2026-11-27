@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" class="io-still" viewBox="0 0 720 486" width="720" height="486" role="img" aria-labelledby="ch6-1-skip-locked-w-t ch6-1-skip-locked-w-d">
+<title id="ch6-1-skip-locked-w-t">Two workers claim different reminders</title>
+<desc id="ch6-1-skip-locked-w-d">A queue of due reminders ordered by available_at. Worker W1 holds a lock on the first row. Worker W2 skips it and takes the next one.</desc>
+<style>.io-still{--io-ground:var(--ground,#E6E8EC);--io-surface:var(--surface,#FFFFFF);--io-ink:var(--ink,#121826);--io-muted:var(--muted,#4C5568);--io-edge:var(--edge,#6B7489);--io-line:var(--line,#C2C7D1);--io-primary:var(--primary,#3447D4);--io-booked:var(--booked,#0B6B52);--io-conflict:var(--conflict,#A63C26);--io-waiting:var(--waiting,#7D5200);--io-on-fill:var(--on-fill,#FFFFFF);}@media (prefers-color-scheme:dark){.io-still{--io-ground:var(--ground,#0D111A);--io-surface:var(--surface,#151B28);--io-ink:var(--ink,#E8ECF4);--io-muted:var(--muted,#A3AEC3);--io-edge:var(--edge,#7C89A5);--io-line:var(--line,#2C364B);--io-primary:var(--primary,#8C9BFF);--io-booked:var(--booked,#4FD1A5);--io-conflict:var(--conflict,#FF8A70);--io-waiting:var(--waiting,#F0BC55);--io-on-fill:var(--on-fill,#0D111A);}}.io-still text{font-family:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;font-variant-numeric:tabular-nums}.io-still .mono{font-family:"IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace}.io-still .b{font-weight:600}.io-still .f-ground{fill:var(--io-ground)}.io-still .s-ground{stroke:var(--io-ground);fill:none}.io-still .f-surface{fill:var(--io-surface)}.io-still .s-surface{stroke:var(--io-surface);fill:none}.io-still .f-ink{fill:var(--io-ink)}.io-still .s-ink{stroke:var(--io-ink);fill:none}.io-still .f-muted{fill:var(--io-muted)}.io-still .s-muted{stroke:var(--io-muted);fill:none}.io-still .f-edge{fill:var(--io-edge)}.io-still .s-edge{stroke:var(--io-edge);fill:none}.io-still .f-line{fill:var(--io-line)}.io-still .s-line{stroke:var(--io-line);fill:none}.io-still .f-primary{fill:var(--io-primary)}.io-still .s-primary{stroke:var(--io-primary);fill:none}.io-still .f-booked{fill:var(--io-booked)}.io-still .s-booked{stroke:var(--io-booked);fill:none}.io-still .f-conflict{fill:var(--io-conflict)}.io-still .s-conflict{stroke:var(--io-conflict);fill:none}.io-still .f-waiting{fill:var(--io-waiting)}.io-still .s-waiting{stroke:var(--io-waiting);fill:none}.io-still .f-on-fill{fill:var(--io-on-fill)}.io-still .s-on-fill{stroke:var(--io-on-fill);fill:none}</style>
+<defs><pattern id="ch6-1-skip-locked-w-hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="3" height="8" class="f-ink"/></pattern></defs>
+<rect width="720" height="486" class="f-ground"/>
+<text x="16" y="28" font-size="16" text-anchor="start" class="f-muted">Order of events, downward</text>
+<path d="M16 40L704 40" class="s-edge" stroke-width="1" />
+<text x="212" y="70" font-size="16" text-anchor="start" class="f-ink b">Due reminders, earliest first</text>
+<rect x="220" y="104" width="280" height="52" class="f-surface" />
+<rect x="220" y="104" width="280" height="52" class="s-edge" stroke-width="2"/>
+<text x="360" y="135.6" font-size="16" text-anchor="middle" class="f-ink b">reminder 1</text>
+<rect x="220" y="196" width="280" height="52" class="f-surface" />
+<rect x="220" y="196" width="280" height="52" class="s-edge" stroke-width="2"/>
+<text x="360" y="227.6" font-size="16" text-anchor="middle" class="f-ink b">reminder 2</text>
+<rect x="220" y="288" width="280" height="52" class="f-surface" />
+<rect x="220" y="288" width="280" height="52" class="s-edge" stroke-width="2"/>
+<text x="360" y="319.6" font-size="16" text-anchor="middle" class="f-ink b">reminder 3</text>
+<path d="M212 96H508V118H501V107H219V118H212Z" class="f-ink" />
+<path d="M212 188H508V210H501V199H219V210H212Z" class="f-ink" />
+<rect x="89" y="109" width="42" height="42" class="f-surface" />
+<rect x="89" y="109" width="42" height="42" class="s-ink" stroke-width="3"/>
+<text x="110" y="136" font-size="16" text-anchor="middle" class="f-ink b mono">W1</text>
+<path d="M135 130L198 130" class="s-ink" stroke-width="2" />
+<path d="M208 130L196 136L196 124Z" class="f-ink" />
+<rect x="589" y="109" width="42" height="42" class="f-surface" />
+<rect x="589" y="109" width="42" height="42" class="s-ink" stroke-width="3"/>
+<text x="610" y="136" font-size="16" text-anchor="middle" class="f-ink b mono">W2</text>
+<path d="M610 156L520.294 216.414" class="s-ink" stroke-width="3" />
+<path d="M512 222L518.602 210.32L525.305 220.273Z" class="f-ink" />
+<text x="360" y="176" font-size="16" text-anchor="middle" class="f-ink b">locked by W1</text>
+<text x="360" y="268" font-size="16" text-anchor="middle" class="f-ink b">locked by W2</text>
+<text x="360" y="362" font-size="16" text-anchor="middle" class="f-muted">not claimed</text>
+<text x="16" y="400" font-size="16" text-anchor="start" class="f-ink b">W2 skips the locked first row and takes the next.</text>
+<text x="16" y="430" font-size="16" text-anchor="start" class="f-ink mono">FOR UPDATE SKIP LOCKED</text>
+<text x="16" y="460" font-size="16" text-anchor="start" class="f-muted">A claimed row is marked sending and leased for 5 minutes.</text>
+</svg>

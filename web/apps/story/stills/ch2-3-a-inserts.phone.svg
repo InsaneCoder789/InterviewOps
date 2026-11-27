@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" class="io-still" viewBox="0 0 328 609" width="328" height="609" role="img" aria-labelledby="ch2-3-a-inserts-p-t ch2-3-a-inserts-p-d">
+<title id="ch2-3-a-inserts-p-t">Hypothetical: A inserts and commits</title>
+<desc id="ch2-3-a-inserts-p-d">A booking from A appears in the table, closing the gap for A. B still has its earlier answer.</desc>
+<style>.io-still{--io-ground:var(--ground,#E6E8EC);--io-surface:var(--surface,#FFFFFF);--io-ink:var(--ink,#121826);--io-muted:var(--muted,#4C5568);--io-edge:var(--edge,#6B7489);--io-line:var(--line,#C2C7D1);--io-primary:var(--primary,#3447D4);--io-booked:var(--booked,#0B6B52);--io-conflict:var(--conflict,#A63C26);--io-waiting:var(--waiting,#7D5200);--io-on-fill:var(--on-fill,#FFFFFF);}@media (prefers-color-scheme:dark){.io-still{--io-ground:var(--ground,#0D111A);--io-surface:var(--surface,#151B28);--io-ink:var(--ink,#E8ECF4);--io-muted:var(--muted,#A3AEC3);--io-edge:var(--edge,#7C89A5);--io-line:var(--line,#2C364B);--io-primary:var(--primary,#8C9BFF);--io-booked:var(--booked,#4FD1A5);--io-conflict:var(--conflict,#FF8A70);--io-waiting:var(--waiting,#F0BC55);--io-on-fill:var(--on-fill,#0D111A);}}.io-still text{font-family:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;font-variant-numeric:tabular-nums}.io-still .mono{font-family:"IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace}.io-still .b{font-weight:600}.io-still .f-ground{fill:var(--io-ground)}.io-still .s-ground{stroke:var(--io-ground);fill:none}.io-still .f-surface{fill:var(--io-surface)}.io-still .s-surface{stroke:var(--io-surface);fill:none}.io-still .f-ink{fill:var(--io-ink)}.io-still .s-ink{stroke:var(--io-ink);fill:none}.io-still .f-muted{fill:var(--io-muted)}.io-still .s-muted{stroke:var(--io-muted);fill:none}.io-still .f-edge{fill:var(--io-edge)}.io-still .s-edge{stroke:var(--io-edge);fill:none}.io-still .f-line{fill:var(--io-line)}.io-still .s-line{stroke:var(--io-line);fill:none}.io-still .f-primary{fill:var(--io-primary)}.io-still .s-primary{stroke:var(--io-primary);fill:none}.io-still .f-booked{fill:var(--io-booked)}.io-still .s-booked{stroke:var(--io-booked);fill:none}.io-still .f-conflict{fill:var(--io-conflict)}.io-still .s-conflict{stroke:var(--io-conflict);fill:none}.io-still .f-waiting{fill:var(--io-waiting)}.io-still .s-waiting{stroke:var(--io-waiting);fill:none}.io-still .f-on-fill{fill:var(--io-on-fill)}.io-still .s-on-fill{stroke:var(--io-on-fill);fill:none}</style>
+<defs><pattern id="ch2-3-a-inserts-p-hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="3" height="8" class="f-ink"/></pattern></defs>
+<rect width="328" height="609" class="f-ground"/>
+<text x="16" y="28" font-size="14" text-anchor="start" class="f-muted">Order of events, downward</text>
+<path d="M16 40L312 40" class="s-edge" stroke-width="1" />
+<rect x="17" y="52" width="294" height="56" class="s-ink" stroke-width="2"/>
+<text x="28" y="72" font-size="14" text-anchor="start" class="f-ink b">Hypothetical: no locks, no</text>
+<text x="28" y="92" font-size="14" text-anchor="start" class="f-ink b">constraint. Not InterviewOps code.</text>
+<text x="36" y="140" font-size="20" text-anchor="middle" class="f-ink b">A</text>
+<text x="292" y="140" font-size="20" text-anchor="middle" class="f-ink b">B</text>
+<rect x="88" y="120" width="152" height="34" class="f-surface" />
+<rect x="88" y="120" width="152" height="34" class="s-edge" stroke-width="2"/>
+<text x="164" y="141.9" font-size="14" text-anchor="middle" class="f-ink b">slot 1</text>
+<rect x="18" y="152" width="36" height="28" class="f-primary" />
+<rect x="14" y="148" width="4" height="36" class="f-ink" />
+<text x="36" y="172.3" font-size="18" text-anchor="middle" class="f-on-fill b">A</text>
+<rect x="274" y="152" width="36" height="28" class="f-surface" />
+<rect x="274" y="152" width="36" height="28" fill="url(#ch2-3-a-inserts-p-hatch)"/>
+<path d="M274 152L310 152" class="s-ink" stroke-width="2" />
+<path d="M274 180L310 180" class="s-ink" stroke-width="2" />
+<rect x="270" y="148" width="4" height="36" class="f-ink" />
+<rect x="280.6" y="152.5" width="22.8" height="27" class="f-surface" />
+<text x="292" y="172.3" font-size="18" text-anchor="middle" class="f-ink b">B</text>
+<path d="M36 188L36 526" class="s-edge" stroke-width="1" stroke-dasharray="3 5"/>
+<path d="M292 188L292 526" class="s-edge" stroke-width="1" stroke-dasharray="3 5"/>
+<text x="164" y="180" font-size="14" text-anchor="middle" class="f-muted">bookings table</text>
+<rect x="88" y="192" width="152" height="354" class="s-edge" stroke-width="2"/>
+<path d="M40 236L78 236" class="s-ink" stroke-width="2" />
+<path d="M88 236L76 242L76 230Z" class="f-ink" />
+<path d="M88 252L50 252" class="s-ink" stroke-width="2" stroke-dasharray="5 4"/>
+<path d="M40 252L52 246L52 258Z" class="f-ink" />
+<text x="164" y="228" font-size="14" text-anchor="middle" class="f-ink">A reads:</text>
+<text x="164" y="276" font-size="14" text-anchor="middle" class="f-ink b">“free”</text>
+<path d="M288 316L250 316" class="s-ink" stroke-width="2" />
+<path d="M240 316L252 310L252 322Z" class="f-ink" />
+<path d="M240 332L278 332" class="s-ink" stroke-width="2" stroke-dasharray="5 4"/>
+<path d="M288 332L276 338L276 326Z" class="f-ink" />
+<text x="164" y="308" font-size="14" text-anchor="middle" class="f-ink">B reads:</text>
+<text x="164" y="356" font-size="14" text-anchor="middle" class="f-ink b">“free”</text>
+<path d="M22 264L22 416" class="s-waiting" stroke-width="3" />
+<path d="M22 264L32 264" class="s-waiting" stroke-width="3" />
+<path d="M22 416L32 416" class="s-waiting" stroke-width="3" />
+<text x="38" y="338" font-size="14" text-anchor="start" class="f-waiting b">the</text>
+<text x="38" y="356" font-size="14" text-anchor="start" class="f-waiting b">gap</text>
+<path d="M306 344L306 396" class="s-waiting" stroke-width="3" stroke-dasharray="6 5"/>
+<path d="M306 344L296 344" class="s-waiting" stroke-width="3" />
+<text x="290" y="368" font-size="14" text-anchor="end" class="f-waiting b">the</text>
+<text x="290" y="386" font-size="14" text-anchor="end" class="f-waiting b">gap</text>
+<path d="M40 416L78 416" class="s-ink" stroke-width="2" />
+<path d="M88 416L76 422L76 410Z" class="f-ink" />
+<text x="164" y="388" font-size="14" text-anchor="middle" class="f-ink">A inserts, commits</text>
+<rect x="104" y="398" width="116" height="36" class="f-booked" />
+<rect x="100" y="394" width="4" height="44" class="f-ink" />
+<text x="162" y="420.9" font-size="14" text-anchor="middle" class="f-on-fill b">A booked</text>
+<path d="M100 496L228 496" class="s-edge" stroke-width="2" />
+<text x="164" y="488" font-size="14" text-anchor="middle" class="f-muted">empty</text>
+<text x="16" y="564" font-size="14" text-anchor="start" class="f-ink b">A is committed. B still holds its old</text>
+<text x="16" y="583" font-size="14" text-anchor="start" class="f-ink b">answer.</text>
+</svg>

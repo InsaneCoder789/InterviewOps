@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>InterviewOps | Two requests. One slot.</title>
+<link rel="icon" href="../../packages/brand/mark.svg">
+<link rel="stylesheet" href="../../packages/brand/fonts.css">
+<link rel="stylesheet" href="../../packages/brand/tokens.css">
+<script>
+try { var t = localStorage.getItem("io-theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+<style>
+* { box-sizing: border-box; }
+html { background: var(--ground); }
+body { margin: 0; background: var(--ground); color: var(--ink); font: 400 var(--t-body-size)/var(--t-body-line) var(--font-sans); overflow-wrap: break-word; }
+a { color: var(--primary); text-decoration: underline; text-underline-offset: 3px; }
+a:hover { text-decoration-thickness: 3px; }
+:focus-visible { outline: var(--focus); outline-offset: var(--focus-offset); }
+.skip { position: absolute; left: -999em; }
+.skip:focus { position: static; display: inline-block; padding: var(--s-8) var(--page-margin); }
+header, main { max-width: 1440px; padding: 0 var(--page-margin); }
+header { border-bottom: var(--rule-4) solid var(--ink); max-width: none; padding-block: var(--s-16); }
+.mast { display: flex; flex-wrap: wrap; gap: var(--s-16); align-items: center; justify-content: space-between; }
+h1 { font-size: var(--t-sub-size); line-height: var(--t-sub-line); margin: 0; }
+fieldset { border: 0; margin: 0; padding: 0; display: flex; align-items: center; }
+legend { position: absolute; left: -999em; }
+fieldset button { font: 600 1rem var(--font-sans); min-height: var(--target-min); padding: 0 var(--s-16); color: var(--ink); background: transparent; border: var(--rule-2) solid var(--ink); cursor: pointer; }
+fieldset button + button { border-left: 0; }
+fieldset button[aria-pressed="true"], fieldset button:hover { background: var(--ink); color: var(--on-fill); }
+.note { max-width: var(--measure); font-size: var(--t-small-size); color: var(--muted); }
+nav ol { display: flex; list-style: none; padding: var(--s-4) 0; margin: var(--s-24) 0 0; }
+nav li { flex: 1; max-width: 72px; }
+nav a { display: flex; align-items: center; justify-content: center; min-height: var(--target-min); background: var(--surface); border-left: var(--rule-4) solid var(--ink); font: 600 var(--t-code-size) var(--font-mono); text-decoration: none; }
+nav a:hover { background: var(--primary); color: var(--on-fill); }
+section { border-top: var(--rule-4) solid var(--ink); margin-top: var(--section-gap); padding-top: var(--s-16); }
+.chapter { margin: 0 0 var(--s-16); font-size: var(--t-small-size); color: var(--muted); }
+h2 { font: 700 var(--t-title-size)/var(--t-title-line) var(--font-display); font-stretch: condensed; margin: 0 0 var(--block-gap); max-width: 18ch; text-wrap: balance; }
+#collision h2 { font-size: var(--t-display-size); line-height: var(--t-display-line); letter-spacing: var(--t-display-track); }
+.prose, .sources, .stills, .scroll, .actions, .novisual { margin-left: min(12vw, 160px); }
+.prose { max-width: var(--measure); }
+pre { background: var(--surface); border-left: var(--rule-4) solid var(--ink); padding: var(--s-16); overflow-x: auto; font: 400 var(--t-code-size)/var(--t-code-line) var(--font-mono); }
+code { font-family: var(--font-mono); font-size: 0.92em; }
+.scroll { overflow-x: auto; max-width: 880px; margin-bottom: var(--block-gap); }
+.prose .scroll { margin-left: 0; }
+table { border-collapse: collapse; width: 100%; font-size: var(--t-small-size); font-variant-numeric: tabular-nums; }
+caption { text-align: left; color: var(--muted); padding-bottom: var(--s-8); }
+th, td { text-align: left; vertical-align: top; padding: var(--s-8) var(--s-12) var(--s-8) 0; }
+th { border-bottom: var(--rule-2) solid var(--ink); }
+td { border-bottom: var(--rule-1) solid var(--line); }
+.sources { font-size: var(--t-small-size); margin-bottom: var(--block-gap); }
+h3 { font-size: var(--t-small-size); margin: var(--s-24) 0 var(--s-4); }
+.sources ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; column-gap: var(--s-24); }
+.sources a { display: inline-block; padding: var(--s-4) 0; }
+figure { margin: 0 0 var(--s-48); max-width: 720px; }
+figcaption { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--s-4) var(--s-16); padding-bottom: var(--s-8); font-size: var(--t-small-size); }
+.cap { font-weight: 600; }
+.fb { border: var(--rule-2) solid var(--edge); border-radius: var(--r-1); padding: 0 var(--s-8); }
+.files { margin-left: auto; display: flex; gap: var(--s-12); }
+figure img, figure svg { display: block; width: 100%; height: auto; border-left: var(--rule-4) solid var(--ink); }
+figure .phone { display: none; }
+.novisual { color: var(--muted); font-size: var(--t-small-size); }
+.actions { list-style: none; padding: 0; }
+.actions li { display: flex; flex-wrap: wrap; align-items: center; gap: var(--s-12); margin-bottom: var(--s-12); }
+.button { display: inline-flex; align-items: center; min-height: var(--target-min); padding: 0 var(--s-16); border-radius: var(--r-1); font-weight: 600; }
+.button.primary { background: var(--primary); color: var(--on-fill); text-decoration: none; }
+.button.primary:hover { background: var(--ink); }
+.button.off { border: var(--rule-2) dashed var(--edge); color: var(--muted); }
+.why { font-size: var(--t-small-size); color: var(--muted); }
+footer { padding: var(--s-96) var(--page-margin) var(--s-32); font-size: var(--t-small-size); color: var(--muted); }
+@media (max-width: 899px) {
+  .prose, .sources, .stills, .scroll, .actions, .novisual { margin-left: 0; }
+}
+@media (max-width: 639px) {
+  figure { max-width: 420px; }
+  figure .wide { display: none; }
+  figure .phone { display: block; }
+  .files { margin-left: 0; width: 100%; }
+}
+
+/* Editorial layer: the stills remain the complete, readable experience. */
+.brand img { width: 190px; max-width: 42vw; display:block; }
+.mast-links { display:flex; gap:24px; flex-wrap:wrap; align-items:center; }
+header { position:relative; z-index:1; background:var(--ground); }
+main { margin:auto; }
+nav { position:sticky; top:0; z-index:5; background:var(--ground); padding: 1px 0; }
+nav ol { margin: 12px 0; }
+#collision { background-image: repeating-linear-gradient(112deg, transparent 0, transparent 24px, color-mix(in srgb, var(--ink) 2%, transparent) 25px, transparent 26px, transparent 60px); background-position:right top; background-size:38% 100%; background-repeat:no-repeat; margin-top:48px; min-height: min(780px, 85vh); display:grid; grid-template-columns: 5fr 7fr; column-gap: 5vw; align-content:start; position:relative; }
+#collision h2, #collision .chapter, #collision .prose, #collision .sources { grid-column:1; margin-left:0; }
+#collision .stills { grid-column:2; grid-row:2 / span 4; margin:0; align-self:center; }
+#collision .stills figure:first-child { display:none; }
+#collision .sources { margin-top:24px; }
+#collision .prose p:first-child { font-size:1.35rem; line-height:1.45; }
+#collision .prose p:nth-child(2) { max-width:45ch; }
+.files, .fb { display:none; }
+.chapter { font-size:.875rem; }
+section:not(#collision) { padding-top:32px; }
+section:not(#collision) .stills { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:24px; }
+.stills figure { max-width:none; }
+.stills img, .stills svg { background:var(--surface); }
+@media(max-width:899px) { #collision { display:block; min-height:0; } #collision .stills { margin-top:32px; } section:not(#collision) .stills { grid-template-columns:1fr; } .mast-links { gap:12px; } }
+@media(max-width:639px) { .mast { align-items:flex-start; } fieldset button { padding:0 8px; font-size:.85rem; } nav li { min-width:0; } nav a { font-size:.8rem; } }
+
+.scene-controls { display:flex; align-items:center; justify-content:space-between; gap:1rem; font-size:.875rem; padding: 12px 0; }
+.scene-controls button { font:inherit; color:var(--ink); background:transparent; border:2px solid var(--ink); padding:8px 12px; cursor:pointer; }
+.scene-canvas { display:none; width:100%; aspect-ratio: 1.3; border-left:4px solid var(--ink); }
+.scene-canvas canvas { display:block; width:100%; height:100%; }
+#opening-stage.scene-ready .scene-canvas { display:block; }
+#opening-stage.scene-ready figure { display:none; }
+@media(prefers-reduced-motion:reduce) { .scene-controls { display:none; } }
+</style>
+<link rel="stylesheet" href="story.css">
+</head>
+<body>
+<a class="skip" href="#story">Skip to the story</a>
+<header>
+<div class="mast">
+<a class="brand" href="#story"><img src="../../packages/brand/logo.svg" alt="InterviewOps"></a><div class="mast-links"><a href="#anatomy">The story</a><a href="#enter">Skip to the tool</a><a href="https://github.com/InsaneCoder789/InterviewOps">Code on GitHub</a></div>
+<fieldset>
+<legend>Colour theme</legend>
+<button type="button" data-set="system" aria-pressed="true">System</button>
+<button type="button" data-set="light" aria-pressed="false">Light</button>
+<button type="button" data-set="dark" aria-pressed="false">Dark</button>
+</fieldset>
+</div>
+</header>
+<main id="story">
+<nav aria-label="Chapters"><ol>
+<li><a href="#collision" aria-label="Chapter 0: Two requests, one slot">0</a></li>
+<li><a href="#why" aria-label="Chapter 1: Why this matters now">1</a></li>
+<li><a href="#anatomy" aria-label="Chapter 2: Anatomy of a collision">2</a></li>
+<li><a href="#locks" aria-label="Chapter 3: First defence: ordered locks">3</a></li>
+<li><a href="#constraints" aria-label="Chapter 4: Second defence: the database says no">4</a></li>
+<li><a href="#deadlock" aria-label="Chapter 5: The deadlock caused on purpose">5</a></li>
+<li><a href="#reminders" aria-label="Chapter 6: Reminders that survive failure">6</a></li>
+<li><a href="#access" aria-label="Chapter 7: Who may see what">7</a></li>
+<li><a href="#limits" aria-label="Chapter 8: What it does not do yet">8</a></li>
+<li><a href="#enter" aria-label="Chapter 9: Enter the tool">9</a></li>
+</ol></nav>
+<section data-scene="collision" id="collision" aria-labelledby="h0">
+<p class="chapter">Chapter 0: Two requests, one slot</p>
+<h2 id="h0">Two requests.<br>One slot.</h2>
+<div class="prose">
+<p>A mentor offers one hour. Two students ask for it at the same moment.</p>
+<p>One of them should get a booking. The other should get a clear answer, at once, that the hour is taken. There is no third acceptable outcome: not two bookings, and not a server error.</p>
+<p>InterviewOps is a small backend for scheduling mock interviews, built around that moment.</p>
+<div class="hero-actions"><a class="button primary" href="#anatomy">See how it works</a><a class="hero-text-link" href="../tool/">Explore the tool design</a></div>
+</div>
+
+<div class="sources"><h3>Sources</h3><ul><li><a href="https://github.com/InsaneCoder789/InterviewOps/tree/main/scheduling/services.py">scheduling/services.py</a></li><li><a href="https://github.com/InsaneCoder789/InterviewOps/tree/main/tests/test_concurrency.py">tests/test_concurrency.py</a></li></ul></div>
+<div class="stills" id="opening-stage">
+<div class="scene-controls"><span>A booking under contention</span><button type="button" id="motion-toggle" aria-pressed="false">Motion off</button></div>
+<div class="scene-frame"><div class="scene-canvas" aria-hidden="true"></div><div class="scene-label scene-label-a"><strong>Request A</strong><span>Illustrative request</span></div><div class="scene-label scene-label-b"><strong>Request B</strong><span>Same slot</span></div><div class="scene-label scene-label-slot"><strong>One slot</strong><span>One active booking</span></div><div class="scene-axis"><span>Illustrative session time</span><div><span>10:00</span><span>10:30</span><span>11:00</span><span>11:30</span></div></div><div class="scene-caption">Illustration: one request succeeds (201); the other receives a conflict (409). Either request can win.</div></div>
+<figure>
+<figcaption><span class="cap">Arrival</span> <span class="files"><a href="stills/ch0-1-arrival.svg">wide file</a> <a href="stills/ch0-1-arrival.phone.svg">phone file</a></span></figcaption>
+<img loading="lazy" decoding="async" class="wide" data-svg src="stills/ch0-1-arrival.svg" alt="Request A and request B stand level, just short of a single one-hour slot. Neither has an answer yet."><img loading="lazy" decoding="async" class="phone" data-svg src="stills/ch0-1-arrival.phone.svg" alt="Request A and request B stand level, just short of a single one-hour slot. Neither has an answer yet.">
+</figure>
+<figure>
+<figcaption><span class="cap">Result</span> <span class="fb">No-WebGL fallback</span> <span class="files"><a href="stills/ch0-2-result.svg">wide file</a> <a href="stills/ch0-2-result.phone.svg">phone file</a></span></figcaption>
+<img loading="lazy" decoding="async" class="wide" data-svg src="stills/ch0-2-result.svg" alt="Request A holds the slot with 201 booked. Request B is refused with 409, This slot is already booked."><img loading="lazy" decoding="async" class="phone" data-svg src="stills/ch0-2-result.phone.svg" alt="Request A holds the slot with 201 booked. Request B is refused with 409, This slot is already booked.">
+</figure>
+</div>
+</section>
+<div class="overview" aria-label="How the booking race works">
+  <div class="overview-copy"><p class="overview-kicker">The problem, in brief</p><h2>One hour.<br>Two requests.</h2><p>A booking is a promise that two people will meet at the same time. The hard part is keeping that promise when requests arrive together.</p><a href="#anatomy">Follow the transaction <span aria-hidden="true">↗</span></a></div>
+  <div class="overview-diagram" aria-label="Illustration: two requests meet one slot, then one succeeds and one gets a conflict.">
+    <div class="overview-head"><span>THE BOOKING RACE</span><span>ILLUSTRATIVE</span></div>
+    <div class="overview-lanes"><div><span class="lane-name">Request A</span><span class="lane-track"><i></i></span><span class="lane-status">201 <small>booked</small></span></div><div><span class="lane-name">Request B</span><span class="lane-track hatch"><i></i></span><span class="lane-status">409 <small>conflict</small></span></div></div>
+    <div class="overview-foot"><span>One available slot</span><span>Either request can win.</span></div>
+  </div>
+</div>
+<section data-scene="why" id="why" aria-labelledby="h1">
+<p class="chapter">Chapter 1: Why this matters now</p>
+<h2 id="h1">Practice has to be on the calendar.</h2>
+<div class="prose">
+<p>Being interviewed is its own skill, with its own pressure. In a 2020 study of 48 computer science students, those who solved a problem while an interviewer watched did about half as well as those who worked alone. <a class="cite" href="https://news.ncsu.edu/?p=509799">NC State</a> The study did not test practice sessions. It does show that solving a problem and solving it in front of someone are different tasks.</p>
+<p>A mock interview is a way to meet the second task early. It needs two people in the same hour. If the booking is wrong, someone prepares for a session that will not happen.</p>
+<p>There are no figures here on how often scheduling tools get this wrong, and none are guessed. None are needed to see how it can happen.</p>
+</div>
+
+<div class="sources"><h3>Sources</h3><ul><li><a href="https://news.ncsu.edu/?p=509799">NC State news on an FSE 2020 study</a></li><li><a href="https://github.com/InsaneCoder789/InterviewOps/tree/main/scheduling/models.py">scheduling/models.py</a></li></ul></div>
+<p class="novisual"></p>
+</section>
+<section data-scene="anatomy" id="anatomy" aria-labelledby="h2">
+<p class="chapter">Chapter 2: Anatomy of a collision</p>
+<h2 id="h2">Both looked. Both saw it free.</h2>
+<div class="prose">
+<p>The obvious way to book a slot is two steps. Check that no booking exists. Then insert one.</p>
+<pre tabindex="0"><code>request A: is the slot free?   yes
+request B: is the slot free?   yes
+request A: insert booking
+request B: insert booking</code></pre>
+<p>Neither request is wrong about what it read. PostgreSQL, at its default isolation level, shows a query only what was committed before the query began. <a class="cite" href="https://www.postgresql.org/docs/current/transaction-iso.html">PostgreSQL</a> A booking still in progress is invisible. With nothing else in the way, both inserts succeed.</p>
+<p>The code above is an illustration of the mistake, not code from InterviewOps. The rest of this story is about what stands in its way.</p>
+</div>
+
+<div class="sources"><h3>Sources</h3><ul><li><a href="https://www.postgresql.org/docs/current/transaction-iso.html">PostgreSQL: transaction isolation</a></li><li><a href="https://github.com/InsaneCoder789/InterviewOps/tree/main/scheduling/services.py">scheduling/services.py</a></li><li><a href="https://github.com/InsaneCoder789/InterviewOps/tree/main/scheduling/models.py">scheduling/models.py</a></li></ul></div>
+<div class="stills">
+<div class="chapter-scene" data-chapter="anatomy" aria-hidden="true"></div>
+<figure>
+<figcaption><span class="cap">A reads</span> <span class="files"><a href="stills/ch2-1-a-reads.svg">wide file</a> <a href="stills/ch2-1-a-reads.phone.svg">phone file</a></span></figcaption>
+<img loading="eager" decoding="async" class="wide" data-svg src="stills/ch2-1-a-reads.svg" alt="Request A reads the bookings table and is told the slot is free. Nothing is written yet."><img loading="lazy" decoding="async" class="phone" data-svg src="stills/ch2-1-a-reads.phone.svg" alt="Request A reads the bookings table and is told the slot is free. Nothing is written yet.">
+</figure>
+<details class="more-steps"><summary>See the full sequence <span aria-hidden="true">+</span></summary><div class="step-gallery">
+<figure>
+<figcaption><span class="cap">B reads</span> <span class="files"><a href="stills/ch2-2-b-reads.svg">wide file</a> <a href="stills/ch2-2-b-reads.phone.svg">phone file</a></span></figcaption>
+<img loading="lazy" decoding="async" class="wide" data-svg src="stills/ch2-2-b-reads.svg" alt="Request B reads before A has written and is also told free. A bracket named the gap opens after each read."><img loading="lazy" decoding="async" class="phone" data-svg src="stills/ch2-2-b-reads.phone.svg" alt="Request B reads before A has written and is also told free. A bracket named the gap opens after each read.">
+</figure>
+<figure>
+<figcaption><span class="cap">A inserts</span> <span class="files"><a href="stills/ch2-3-a-inserts.svg">wide file</a> <a href="stills/ch2-3-a-inserts.phone.svg">phone file</a></span></figcaption>
+<img loading="lazy" decoding="async" class="wide" data-svg src="stills/ch2-3-a-inserts.svg" alt="A booking from A appears in the table, closing the gap for A. B still has its earlier answer."><img loading="lazy" decoding="async" class="phone" data-svg src="stills/ch2-3-a-inserts.phone.svg" alt="A booking from A appears in the table, closing the gap for A. B still has its earlier answer.">
+</figure>
+<figure>
+<figcaption><span class="cap">B inserts: the whole sequence</span> <span class="fb">No-WebGL fallback</span> <span class="files"><a href="stills/ch2-4-two-bookings.svg">wide file</a> <a href="stills/ch2-4-two-bookings.phone.svg">phone file</a></span></figcaption>
+<img loading="lazy" decoding="async" class="wide" data-svg src="stills/ch2-4-two-bookings.svg" alt="Sequence from top to bottom: A reads free, B reads free, A inserts, B inserts. Both gaps are bracketed. Two overlapping bookings, marked as conflicts, sit on one slot."><img loading="lazy" decoding="async" class="phone" data-svg src="stills/ch2-4-two-bookings.phone.svg" alt="Sequence from top to bottom: A reads free, B reads free, A inserts, B inserts. Both gaps are bracketed. Two overlapping bookings, marked as conflicts, sit on one slot.">
+</figure>
+</div></details>
+</div>
+</section>
+<section data-scene="locks" id="locks" aria-labelledby="h3">
+<p class="chapter">Chapter 3: First defence: ordered locks</p>
+<h2 id="h3">Wait your turn, in a fixed order.</h2>
+<div class="prose">
+<p>Every booking runs inside one transaction. It locks the student's row, then the slot's row, then checks the rules, then writes.</p>
+<p>Two students after one slot hold different student locks, so they pass the first step side by side. They meet at the slot. One locks it. The other waits, and when its turn comes it finds the booking and receives <code>409 Conflict</code>: "This slot is already booked."</p>
+<p>Order matters as much as locking. Operations take user rows first, then the slot, then the booking, so that two of them are not left each holding what the other needs.</p>
+<p>The rules are checked after the wait. The clock is read after the wait too, so a request that queued while the session began cannot book it.</p>
+</div>
+
+<div class="sources"><h3>Sources</h3><ul><li><a href="https://github.com/InsaneCoder789/InterviewOps/tree/main/scheduling/services.py">scheduling/services.py</a></li><li><a href="https://github.com/InsaneCoder789/InterviewOps/blob/main/docs/ARCHITECTURE.md">docs/ARCHITECTURE.md</a></li></ul></div>
+<div class="stills">
+<div class="chapter-scene" data-chapter="locks" aria-hidden="true"></div>
+<figure>
+<figcaption><span class="cap">Both user rows locked</span> <span class="fb">No-WebGL fallback</span> <span class="files"><a href="stills/ch3-1-user-locks.svg">wide file</a> <a href="stills/ch3-1-user-locks.phone.svg">phone file</a></span></figcaption>
+<img loading="eager" decoding="async" class="wide" data-svg src="stills/ch3-1-user-locks.svg" alt="Request A locks student A&#x27;s user row and request B locks student B&#x27;s. They do not contend. The slot is not yet locked."><img loading="lazy" decoding="async" class="phone" data-svg src="stills/ch3-1-user-locks.phone.svg" alt="Request A locks student A&#x27;s user row and request B locks student B&#x27;s. They do not contend. The slot is not yet locked.">
+</figure>
+<details class="more-steps"><summary>See the full sequence <span aria-hidden="true">+</span></summary><div class="step-gallery">
+<figure>
+<figcaption><span class="cap">A takes the slot</span> <span class="files"><a href="stills/ch3-2-slot-lock.svg">wide file</a> <a href="stills/ch3-2-slot-lock.phone.svg">phone file</a></span></figcaption>
+<img loading="lazy" decoding="async" class="wide" data-svg src="stills/ch3-2-slot-lock.svg" alt="A holds locks on its user row and on slot 1. B holds only its own user row."><img loading="lazy" decoding="async" class="phone" data-svg src="stills/ch3-2-slot-lock.phone.svg" alt="A holds locks on its user row and on slot 1. B holds only its own user row.">
+</figure>
+<figure>
+<figcaption><span class="cap">B waits</span> <span class="fb">No-WebGL fallback</span> <span class="files"><a href="stills/ch3-3-b-waits.svg">wide file</a> <a href="stills/ch3-3-b-waits.phone.svg">phone file</a></span></figcaption>
+<img loading="lazy" decoding="async" class="wide" data-svg src="stills/ch3-3-b-waits.svg" alt="A dashed arrow marked waiting runs from request B to the slot row locked by A."><img loading="lazy" decoding="async" class="phone" data-svg src="stills/ch3-3-b-waits.phone.svg" alt="A dashed arrow marked waiting runs from request B to the slot row locked by A.">
+</figure>
+<figure>
+<figcaption><span class="cap">A commits</span> <span class="files"><a href="stills/ch3-4-a-commits.svg">wide file</a> <a href="stills/ch3-4-a-commits.phone.svg">phone file</a></span></figcaption>
+<img loading="lazy" decoding="async" class="wide" data-svg src="stills/ch3-4-a-commits.svg" alt="A booking and its reminder appear as a joined pair. A&#x27;s locks on its user row and the slot are released."><img loading="lazy" decoding="async" class="phone" data-svg src="stills/ch3-4-a-commits.phone.svg" alt="A booking and its reminder appear as a joined pair. A&#x27;s locks on its user row and the slot are released.">
+</figure>
+<figure>
+<figcaption><span class="cap">Final result</span> <span class="fb">No-WebGL fallback</span> <span class="files"><a href="stills/ch3-5-b-409.svg">wide file</a> <a href="stills/ch3-5-b-409.phone.svg">phone file</a></span></figcaption>
+<img loading="lazy" decoding="async" class="wide" data-svg src="stills/ch3-5-b-409.svg" alt="B locks the slot, reads A&#x27;s committed booking, rolls back and receives 409, This slot is already booked."><img loading="lazy" decoding="async" class="phone" data-svg src="stills/ch3-5-b-409.phone.svg" alt="B locks the slot, reads A&#x27;s committed booking, rolls back and receives 409, This slot is already booked.">
+</figure>
+</div></details>
+</div>
+</section>
+<section data-scene="constraints" id="constraints" aria-labelledby="h4">
+<p class="chapter">Chapter 4: Second defence: the database says no</p>
+<h2 id="h4">Skip the queue. The database still refuses.</h2>
+<div class="prose">
+<p>Suppose some other code writes a booking directly and takes no locks at all. The tables carry their own rules.</p>
+<p>A slot may have one active booking. A student's active bookings may not overlap. A mentor's active slots may not overlap. PostgreSQL enforces these on every write. When a request through the service trips one, the answer is a <code>409</code> with a sentence saying why.</p>
+<p>Sessions are measured as half-open intervals. One that ends at 10:00 and one that begins at 10:00 touch without colliding.</p>
+<p>The database does not know every rule. Whether a slot has been cancelled or has started, and who is allowed to book, are decided in the service. The student overlap rule compares times copied from the slot onto the booking; the database checks that those times match.</p>
+</div>
+<div class="scroll"><table><caption>The three constraints, from <a href="https://github.com/InsaneCoder789/InterviewOps/blob/main/docs/ARCHITECTURE.md">docs/ARCHITECTURE.md</a></caption><thead><tr><th scope="col">Constraint</th><th scope="col">Kind</th><th scope="col">Rule</th></tr></thead><tbody><tr><td><code>booking_one_active_per_slot</code></td><td>partial unique index</td><td>A slot has at most one active booking.</td></tr><tr><td><code>booking_no_student_overlap</code></td><td>exclusion</td><td>A student’s active bookings do not overlap.</td></tr><tr><td><code>slot_no_mentor_overlap</code></td><td>exclusion</td><td>A mentor’s active slots do not overlap.</td></tr></tbody></table></div>
+<div class="sources"><h3>Sources</h3><ul><li><a href="https://github.com/InsaneCoder789/InterviewOps/tree/main/scheduling/models.py">scheduling/models.py</a></li><li><a href="https://github.com/InsaneCoder789/InterviewOps/tree/main/scheduling/migrations/0001_btree_gist.py">scheduling/migrations/0001_btree_gist.py</a></li><li><a href="https://github.com/InsaneCoder789/InterviewOps/tree/main/scheduling/services.py">scheduling/services.py</a></li><li><a href="https://github.com/InsaneCoder789/InterviewOps/tree/main/tests/test_api.py">tests/test_api.py</a></li><li><a href="https://www.postgresql.org/docs/current/ddl-constraints.html">PostgreSQL: constraints</a></li></ul></div>
+<div class="stills">
+<div class="chapter-scene" data-chapter="constraints" aria-hidden="true"></div>
+<figure>
+<figcaption><span class="cap">One active booking per slot</span> <span class="files"><a href="stills/ch4-1-direct-write.svg">wide file</a> <a href="stills/ch4-1-direct-write.phone.svg">phone file</a></span></figcaption>
+<img loading="eager" decoding="async" class="wide" data-svg src="stills/ch4-1-direct-write.svg" alt="A direct write that takes no locks tries to add a second active booking for slot 1. The constraint booking_one_active_per_slot refuses it."><img loading="lazy" decoding="async" class="phone" data-svg src="stills/ch4-1-direct-write.phone.svg" alt="A direct write that takes no locks tries to add a second active booking for slot 1. The constraint booking_one_active_per_slot refuses it.">
+</figure>
+<details class="more-steps"><summary>See the full sequence <span aria-hidden="true">+</span></summary><div class="step-gallery">
+<figure>
+<figcaption><span class="cap">Overlaps</span> <span class="fb">No-WebGL fallback</span> <span class="files"><a href="stills/ch4-2-overlap-refused.svg">wide file</a> <a href="stills/ch4-2-overlap-refused.phone.svg">phone file</a></span></figcaption>
+<img loading="lazy" decoding="async" class="wide" data-svg src="stills/ch4-2-overlap-refused.svg" alt="On a time axis, a new booking from 10:30 to 11:30 overlaps an existing one from 10:00 to 11:00. booking_no_student_overlap refuses it; the shared half hour is marked."><img loading="lazy" decoding="async" class="phone" data-svg src="stills/ch4-2-overlap-refused.phone.svg" alt="On a time axis, a new booking from 10:30 to 11:30 overlaps an existing one from 10:00 to 11:00. booking_no_student_overlap refuses it; the shared half hour is marked.">
+</figure>
+<figure>
+<figcaption><span class="cap">Back to back</span> <span class="fb">No-WebGL fallback</span> <span class="files"><a href="stills/ch4-3-back-to-back.svg">wide file</a> <a href="stills/ch4-3-back-to-back.phone.svg">phone file</a></span></figcaption>
+<img loading="lazy" decoding="async" class="wide" data-svg src="stills/ch4-3-back-to-back.svg" alt="An existing booking from 10:00 up to but not including 11:00 is followed by one starting at 11:00. The two blocks touch and both are booked."><img loading="lazy" decoding="async" class="phone" data-svg src="stills/ch4-3-back-to-back.phone.svg" alt="An existing booking from 10:00 up to but not including 11:00 is followed by one starting at 11:00. The two blocks touch and both are booked.">
+</figure>
+<figure>
+<figcaption><span class="cap">A mentor’s slots</span> <span class="files"><a href="stills/ch4-4-mentor-slots.svg">wide file</a> <a href="stills/ch4-4-mentor-slots.phone.svg">phone file</a></span></figcaption>
+<img loading="lazy" decoding="async" class="wide" data-svg src="stills/ch4-4-mentor-slots.svg" alt="For one mentor with a slot from 10:00 to 11:00, a new slot at 10:30 is refused by slot_no_mentor_overlap and a slot starting at 11:00 is accepted."><img loading="lazy" decoding="async" class="phone" data-svg src="stills/ch4-4-mentor-slots.phone.svg" alt="For one mentor with a slot from 10:00 to 11:00, a new slot at 10:30 is refused by slot_no_mentor_overlap and a slot starting at 11:00 is accepted.">
+</figure>
+</div></details>
+</div>
+</section>
+<section data-scene="deadlock" id="deadlock" aria-labelledby="h5">
+<p class="chapter">Chapter 5: The deadlock caused on purpose</p>
+<h2 id="h5">One lock removed. Two requests froze each other.</h2>
+<div class="prose">
+<p>Turn the opening around. One student sends two requests at once, for two different slots at the same hour. One should succeed. The other should be refused.</p>
+<p>During testing the student lock was deliberately removed. The two requests lock different slots, so nothing else put them in order. Each inserted its booking, then went to check for overlap, found the other's uncommitted row and waited for it. Each was waiting for the other.</p>
+<p>PostgreSQL detects this and aborts one transaction. <a class="cite" href="https://www.postgresql.org/docs/current/explicit-locking.html">PostgreSQL</a> In this code that surfaced as an unhandled database error, which the API would return as a <code>500</code>.</p>
+<div class="scroll"><table><thead><tr><th scope="col">30 rounds, two requests each, lock removed</th><th scope="col">Outcomes</th></tr></thead><tbody><tr><td>Booking created</td><td>30</td></tr><tr><td>Clean conflict</td><td>27</td></tr><tr><td>Deadlock</td><td>3</td></tr></tbody></table></div>
+<p>Counts vary between runs. This was a local test with a lock taken out on purpose. It never happened to a deployed system, because there is none.</p>
+<p>The constraint kept the data correct throughout. The lock is what makes the refusal orderly. Putting it back means one student's bookings run one at a time, and the second request sees a finished result.</p>
+</div>
+
+<div class="sources"><h3>Sources</h3><ul><li><a href="https://github.com/InsaneCoder789/InterviewOps/blob/main/docs/investigation-001-deadlock.md">docs/investigation-001-deadlock.md</a></li><li><a href="https://github.com/InsaneCoder789/InterviewOps/tree/main/tests/test_concurrency.py">tests/test_concurrency.py</a></li><li><a href="https://github.com/InsaneCoder789/InterviewOps/tree/main/scheduling/services.py">scheduling/services.py</a></li><li><a href="https://www.postgresql.org/docs/current/explicit-locking.html">PostgreSQL: explicit locking</a></li></ul></div>
+<div class="stills">
+<div class="chapter-scene" data-chapter="deadlock" aria-hidden="true"></div>
+<figure>
+<figcaption><span class="cap">Two slot locks</span> <span class="files"><a href="stills/ch5-1-two-slots.svg">wide file</a> <a href="stills/ch5-1-two-slots.phone.svg">phone file</a></span></figcaption>
+<img loading="eager" decoding="async" class="wide" data-svg src="stills/ch5-1-two-slots.svg" alt="In a local test with the student lock removed, one student&#x27;s requests A and B lock slot 1 and slot 2. The student row has no lock."><img loading="lazy" decoding="async" class="phone" data-svg src="stills/ch5-1-two-slots.phone.svg" alt="In a local test with the student lock removed, one student&#x27;s requests A and B lock slot 1 and slot 2. The student row has no lock.">
+</figure>
+<details class="more-steps"><summary>See the full sequence <span aria-hidden="true">+</span></summary><div class="step-gallery">
+<figure>
+<figcaption><span class="cap">Both insert</span> <span class="files"><a href="stills/ch5-2-both-insert.svg">wide file</a> <a href="stills/ch5-2-both-insert.phone.svg">phone file</a></span></figcaption>
+<img loading="lazy" decoding="async" class="wide" data-svg src="stills/ch5-2-both-insert.svg" alt="A and B each insert a booking for their own slot. Both are uncommitted."><img loading="lazy" decoding="async" class="phone" data-svg src="stills/ch5-2-both-insert.phone.svg" alt="A and B each insert a booking for their own slot. Both are uncommitted.">
+</figure>
+<figure>
+<figcaption><span class="cap">A waits</span> <span class="files"><a href="stills/ch5-3-a-waits.svg">wide file</a> <a href="stills/ch5-3-a-waits.phone.svg">phone file</a></span></figcaption>
+<img loading="lazy" decoding="async" class="wide" data-svg src="stills/ch5-3-a-waits.svg" alt="A&#x27;s overlap check finds B&#x27;s uncommitted booking. A dashed arrow shows A waiting for B."><img loading="lazy" decoding="async" class="phone" data-svg src="stills/ch5-3-a-waits.phone.svg" alt="A&#x27;s overlap check finds B&#x27;s uncommitted booking. A dashed arrow shows A waiting for B.">
+</figure>
+<figure>
+<figcaption><span class="cap">The closed loop</span> <span class="fb">No-WebGL fallback</span> <span class="files"><a href="stills/ch5-4-loop.svg">wide file</a> <a href="stills/ch5-4-loop.phone.svg">phone file</a></span></figcaption>
+<img loading="lazy" decoding="async" class="wide" data-svg src="stills/ch5-4-loop.svg" alt="Two arrows form a loop: A waits for B and B waits for A. This is a deadlock."><img loading="lazy" decoding="async" class="phone" data-svg src="stills/ch5-4-loop.phone.svg" alt="Two arrows form a loop: A waits for B and B waits for A. This is a deadlock.">
+</figure>
+<figure>
+<figcaption><span class="cap">One is aborted</span> <span class="files"><a href="stills/ch5-5-abort.svg">wide file</a> <a href="stills/ch5-5-abort.phone.svg">phone file</a></span></figcaption>
+<img loading="lazy" decoding="async" class="wide" data-svg src="stills/ch5-5-abort.svg" alt="PostgreSQL detects the deadlock, SQLSTATE 40P01, and aborts one transaction while the other proceeds. The picture does not say which. In this code the abort would be returned as a 500."><img loading="lazy" decoding="async" class="phone" data-svg src="stills/ch5-5-abort.phone.svg" alt="PostgreSQL detects the deadlock, SQLSTATE 40P01, and aborts one transaction while the other proceeds. The picture does not say which. In this code the abort would be returned as a 500.">
+</figure>
+<figure>
+<figcaption><span class="cap">The fixed queue</span> <span class="fb">No-WebGL fallback</span> <span class="files"><a href="stills/ch5-6-queue.svg">wide file</a> <a href="stills/ch5-6-queue.phone.svg">phone file</a></span></figcaption>
+<img loading="lazy" decoding="async" class="wide" data-svg src="stills/ch5-6-queue.svg" alt="With the student row lock restored, one request is booked with 201 and the next receives 409, You already have a booking at this time."><img loading="lazy" decoding="async" class="phone" data-svg src="stills/ch5-6-queue.phone.svg" alt="With the student row lock restored, one request is booked with 201 and the next receives 409, You already have a booking at this time.">
+</figure>
+<figure>
+<figcaption><span class="cap">The recorded run</span> <span class="fb">No-WebGL fallback</span> <span class="files"><a href="stills/ch5-7-tally.svg">wide file</a> <a href="stills/ch5-7-tally.phone.svg">phone file</a></span></figcaption>
+<img loading="lazy" decoding="async" class="wide" data-svg src="stills/ch5-7-tally.svg" alt="Sixty request outcomes from 30 rounds of two requests: 30 bookings created, 27 clean conflicts and 3 deadlocks. A local test with the lock removed on purpose; counts vary between runs."><img loading="lazy" decoding="async" class="phone" data-svg src="stills/ch5-7-tally.phone.svg" alt="Sixty request outcomes from 30 rounds of two requests: 30 bookings created, 27 clean conflicts and 3 deadlocks. A local test with the lock removed on purpose; counts vary between runs.">
+</figure>
+</div></details>
+</div>
+</section>
+<section data-scene="reminders" id="reminders" aria-labelledby="h6">
+<p class="chapter">Chapter 6: Reminders that survive failure</p>
+<h2 id="h6">Written with the booking. Retried until sent, within limits.</h2>
+<div class="prose">
+<p>A booking queues its emails in the same transaction: a confirmation and a reminder for the student and for the mentor. The booking and its messages are saved together or not at all. Changes and cancellations use the same queue.</p>
+<p>A separate worker picks up reminders that are due, 24 hours before the session, or straight away for a later booking. It claims one, skipping any that another worker holds, and leases it for five minutes. The email is sent outside the transaction, so a slow mail server holds no database locks.</p>
+<p>If sending fails, the worker waits one minute, then two, then four, up to an hour between tries. After ten attempts, about four hours, it marks the reminder failed. If a worker dies mid-send, the lease expires and the reminder is claimed again.</p>
+<p>The price of that persistence: a reminder can arrive twice. If the mail server accepts a message and the worker dies before recording it, the message is sent again. A cancellation made during the send cannot call the email back.</p>
+</div>
+
+<div class="sources"><h3>Sources</h3><ul><li><a href="https://github.com/InsaneCoder789/InterviewOps/tree/main/scheduling/services.py">scheduling/services.py</a></li><li><a href="https://github.com/InsaneCoder789/InterviewOps/blob/main/notifications/delivery.py">notifications/delivery.py</a></li><li><a href="https://github.com/InsaneCoder789/InterviewOps/tree/main/config/settings.py">config/settings.py</a></li><li><a href="https://github.com/InsaneCoder789/InterviewOps/blob/main/tests/test_notifications.py">tests/test_notifications.py</a></li><li><a href="https://github.com/InsaneCoder789/InterviewOps/tree/main/tests/test_concurrency.py">tests/test_concurrency.py</a></li><li><a href="https://www.postgresql.org/docs/current/sql-select.html">PostgreSQL: SELECT</a></li></ul></div>
+<div class="stills">
+<figure>
+<figcaption><span class="cap">Two workers</span> <span class="fb">No-WebGL fallback</span> <span class="files"><a href="stills/ch6-1-skip-locked.svg">wide file</a> <a href="stills/ch6-1-skip-locked.phone.svg">phone file</a></span></figcaption>
+<img loading="eager" decoding="async" class="wide" data-svg src="stills/ch6-1-skip-locked.svg" alt="A queue of due reminders ordered by available_at. Worker W1 holds a lock on the first row. Worker W2 skips it and takes the next one."><img loading="lazy" decoding="async" class="phone" data-svg src="stills/ch6-1-skip-locked.phone.svg" alt="A queue of due reminders ordered by available_at. Worker W1 holds a lock on the first row. Worker W2 skips it and takes the next one.">
+</figure>
+<details class="more-steps"><summary>See the full sequence <span aria-hidden="true">+</span></summary><div class="step-gallery">
+<figure>
+<figcaption><span class="cap">Retry spacing</span> <span class="fb">No-WebGL fallback</span> <span class="files"><a href="stills/ch6-2-retries.svg">wide file</a> <a href="stills/ch6-2-retries.phone.svg">phone file</a></span></figcaption>
+<img loading="lazy" decoding="async" class="wide" data-svg src="stills/ch6-2-retries.svg" alt="Waits after failed sends are 1, 2, 4, 8, 16 and 32 minutes, then 60 minutes three times. The tenth failure marks the reminder failed, after about four hours."><img loading="lazy" decoding="async" class="phone" data-svg src="stills/ch6-2-retries.phone.svg" alt="Waits after failed sends are 1, 2, 4, 8, 16 and 32 minutes, then 60 minutes three times. The tenth failure marks the reminder failed, after about four hours.">
+</figure>
+<figure>
+<figcaption><span class="cap">Repeat send</span> <span class="fb">No-WebGL fallback</span> <span class="files"><a href="stills/ch6-3-repeat-send.svg">wide file</a> <a href="stills/ch6-3-repeat-send.phone.svg">phone file</a></span></figcaption>
+<img loading="lazy" decoding="async" class="wide" data-svg src="stills/ch6-3-repeat-send.svg" alt="W1 claims a reminder and the mail server accepts the email, but W1 dies before recording it. The 5 minute lease expires, W2 claims the reminder and sends it again. Delivery is at-least-once."><img loading="lazy" decoding="async" class="phone" data-svg src="stills/ch6-3-repeat-send.phone.svg" alt="W1 claims a reminder and the mail server accepts the email, but W1 dies before recording it. The 5 minute lease expires, W2 claims the reminder and sends it again. Delivery is at-least-once.">
+</figure>
+</div></details>
+</div>
+</section>
+<section data-scene="access" id="access" aria-labelledby="h7">
+<p class="chapter">Chapter 7: Who may see what</p>
+<h2 id="h7">If it is not yours, it is not there.</h2>
+<div class="prose">
+<p>Students see upcoming slots from active mentors, including whether each is taken, but not by whom. Mentors see their own slots and the bookings on them. Admins see everything.</p>
+<p>Ask for someone else's booking and the answer is <code>404 Not Found</code>, the same as for a booking that never existed. The standard allows this when a server would rather not confirm that something is there. <a class="cite" href="https://www.rfc-editor.org/rfc/rfc9110.html">RFC 9110</a></p>
+<p>Roles are not self-declared. People join by invitation with the role an admin chose; where open sign-up is enabled, it creates a student. Only an admin changes a role, not their own, and not while that person has sessions still to come. Two admins who try to demote each other at the same moment cannot both succeed.</p>
+</div>
+<div class="scroll"><table><caption>What each role can read, from <a href="https://github.com/InsaneCoder789/InterviewOps/blob/main/docs/ARCHITECTURE.md">the architecture</a></caption><thead><tr><th scope="col">Role</th><th scope="col">Slots</th><th scope="col">Bookings</th><th scope="col">Users and roles</th></tr></thead><tbody><tr><td>Student</td><td>active mentors’ slots, not cancelled, not started, booked or not</td><td>own</td><td>none</td></tr><tr><td>Mentor</td><td>own, including past and cancelled</td><td>on own slots</td><td>none</td></tr><tr><td>Admin</td><td>all</td><td>all</td><td>list users, change roles (not their own)</td></tr></tbody></table></div>
+<div class="sources"><h3>Sources</h3><ul><li><a href="https://github.com/InsaneCoder789/InterviewOps/tree/main/scheduling/views.py">scheduling/views.py</a></li><li><a href="https://github.com/InsaneCoder789/InterviewOps/tree/main/accounts/permissions.py">accounts/permissions.py</a></li><li><a href="https://github.com/InsaneCoder789/InterviewOps/tree/main/scheduling/services.py">scheduling/services.py</a></li><li><a href="https://github.com/InsaneCoder789/InterviewOps/tree/main/tests/test_api.py">tests/test_api.py</a></li><li><a href="https://www.rfc-editor.org/rfc/rfc9110.html">RFC 9110</a></li></ul></div>
+<div class="stills">
+<figure>
+<figcaption><span class="cap">Student</span> <span class="fb">No-WebGL fallback</span> <span class="files"><a href="stills/ch7-1-student.svg">wide file</a> <a href="stills/ch7-1-student.phone.svg">phone file</a></span></figcaption>
+<img loading="eager" decoding="async" class="wide" data-svg src="stills/ch7-1-student.svg" alt="Student 1 sees slots 1, 2 and 3, marked booked or open with no student names, and only booking 1. Past and cancelled slots, booking 2 and users are absent."><img loading="lazy" decoding="async" class="phone" data-svg src="stills/ch7-1-student.phone.svg" alt="Student 1 sees slots 1, 2 and 3, marked booked or open with no student names, and only booking 1. Past and cancelled slots, booking 2 and users are absent.">
+</figure>
+<details class="more-steps"><summary>See the full sequence <span aria-hidden="true">+</span></summary><div class="step-gallery">
+<figure>
+<figcaption><span class="cap">Mentor</span> <span class="fb">No-WebGL fallback</span> <span class="files"><a href="stills/ch7-2-mentor.svg">wide file</a> <a href="stills/ch7-2-mentor.phone.svg">phone file</a></span></figcaption>
+<img loading="lazy" decoding="async" class="wide" data-svg src="stills/ch7-2-mentor.svg" alt="Mentor 1 sees own slots 1, 2, 4 and 5 and booking 1 on slot 1. Mentor 2&#x27;s slot, its booking and users are absent."><img loading="lazy" decoding="async" class="phone" data-svg src="stills/ch7-2-mentor.phone.svg" alt="Mentor 1 sees own slots 1, 2, 4 and 5 and booking 1 on slot 1. Mentor 2&#x27;s slot, its booking and users are absent.">
+</figure>
+<figure>
+<figcaption><span class="cap">Admin</span> <span class="fb">No-WebGL fallback</span> <span class="files"><a href="stills/ch7-3-admin.svg">wide file</a> <a href="stills/ch7-3-admin.phone.svg">phone file</a></span></figcaption>
+<img loading="lazy" decoding="async" class="wide" data-svg src="stills/ch7-3-admin.svg" alt="An admin sees all five slots, both bookings, and can list users and change other users&#x27; roles."><img loading="lazy" decoding="async" class="phone" data-svg src="stills/ch7-3-admin.phone.svg" alt="An admin sees all five slots, both bookings, and can list users and change other users&#x27; roles.">
+</figure>
+<figure>
+<figcaption><span class="cap">404 and 403</span> <span class="files"><a href="stills/ch7-4-refusals.svg">wide file</a> <a href="stills/ch7-4-refusals.phone.svg">phone file</a></span></figcaption>
+<img loading="lazy" decoding="async" class="wide" data-svg src="stills/ch7-4-refusals.svg" alt="A student asking for another student&#x27;s booking and for a booking that never existed gets the same 404 Not Found. A student asking to publish a slot is stopped with 403 before any lookup."><img loading="lazy" decoding="async" class="phone" data-svg src="stills/ch7-4-refusals.phone.svg" alt="A student asking for another student&#x27;s booking and for a booking that never existed gets the same 404 Not Found. A student asking to publish a slot is stopped with 403 before any lookup.">
+</figure>
+</div></details>
+</div>
+</section>
+<section data-scene="limits" id="limits" aria-labelledby="h8">
+<p class="chapter">Chapter 8: What it does not do yet</p>
+<h2 id="h8">What is missing.</h2>
+<div class="prose">
+<p>InterviewOps runs on a developer's machine. It has not been deployed, it has no users, and nothing about its speed or capacity has been measured. A container file and a hosting blueprint are included and have not been built.</p>
+<p><strong>Accounts.</strong> Public sign-up is closed unless the operator opens it; people join by invitation. Each account has one sign-in token.</p>
+<p><strong>Scheduling.</strong> No editing a slot or repeating availability. Some rules are enforced by the application only, not by the database.</p>
+<p><strong>Email.</strong> Plain text, with times in UTC. A message can be repeated.</p>
+<p><strong>Beyond booking.</strong> No calendar sync, hosted video, matching or payments.</p>
+</div>
+
+<div class="sources"><h3>Sources</h3><ul><li><a href="https://github.com/InsaneCoder789/InterviewOps#readme">README.md</a></li><li><a href="https://github.com/InsaneCoder789/InterviewOps/blob/main/SECURITY.md">SECURITY.md</a></li></ul></div>
+<p class="novisual"></p>
+</section>
+<section data-scene="enter" id="enter" aria-labelledby="h9">
+<p class="chapter">Chapter 9: Enter the tool</p>
+<h2 id="h9">Take a slot.</h2>
+<div class="prose">
+<p>The backend runs on your own machine against your own database. The tool shown here is an illustrative design preview and is not connected to it.</p>
+</div>
+<ul class="actions" aria-label="End actions">
+<li><a class="button primary" href="https://github.com/InsaneCoder789/InterviewOps#readme">Run it locally</a></li>
+<li><a class="button" href="https://github.com/InsaneCoder789/InterviewOps">Read the code</a></li>
+<li><a class="button" href="../tool/">Explore the tool design</a> <span class="why">Illustrative design preview, not connected to the API.</span></li>
+</ul>
+<div class="sources"><h3>Sources</h3><ul><li><a href="https://github.com/InsaneCoder789/InterviewOps/tree/main/accounts/urls.py">accounts/urls.py</a></li><li><a href="https://github.com/InsaneCoder789/InterviewOps/tree/main/scheduling/urls.py">scheduling/urls.py</a></li><li><a href="https://github.com/InsaneCoder789/InterviewOps#readme">README.md</a></li></ul></div>
+<div class="stills">
+<figure>
+<figcaption><span class="cap">Day track</span> <span class="fb">No-WebGL fallback</span> <span class="files"><a href="stills/ch9-1-day-track.svg">wide file</a> <a href="stills/ch9-1-day-track.phone.svg">phone file</a></span></figcaption>
+<img loading="eager" decoding="async" class="wide" data-svg src="stills/ch9-1-day-track.svg" alt="An illustrated day track and matching list: 09:00 to 10:00 booked, 10:00 to 11:00 open, 11:00 to 12:00 open, each starting where the last ends. Not live data."><img loading="lazy" decoding="async" class="phone" data-svg src="stills/ch9-1-day-track.phone.svg" alt="An illustrated day track and matching list: 09:00 to 10:00 booked, 10:00 to 11:00 open, 11:00 to 12:00 open, each starting where the last ends. Not live data.">
+</figure>
+</div>
+</section>
+</main>
+<footer>InterviewOps · The booking is only the beginning.</footer>
+<script>
+(function () {
+  var root = document.documentElement;
+  var buttons = document.querySelectorAll("[data-set]");
+  function show(t) { buttons.forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.set === t)); }); }
+  show(root.dataset.theme || "system");
+  buttons.forEach(function (b) {
+    b.addEventListener("click", function () {
+      var t = b.dataset.set;
+      if (t === "system") delete root.dataset.theme; else root.dataset.theme = t;
+      try { localStorage.setItem("io-theme", t); } catch (e) {}
+      show(t);
+    });
+  });
+
+})();
+</script>
+<script type="module" src="scene.js"></script>
+</body>
+</html>

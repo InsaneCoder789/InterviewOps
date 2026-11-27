@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" class="io-still" viewBox="0 0 328 668" width="328" height="668" role="img" aria-labelledby="ch3-2-slot-lock-p-t ch3-2-slot-lock-p-d">
+<title id="ch3-2-slot-lock-p-t">A takes the slot lock</title>
+<desc id="ch3-2-slot-lock-p-d">A holds locks on its user row and on slot 1. B holds only its own user row.</desc>
+<style>.io-still{--io-ground:var(--ground,#E6E8EC);--io-surface:var(--surface,#FFFFFF);--io-ink:var(--ink,#121826);--io-muted:var(--muted,#4C5568);--io-edge:var(--edge,#6B7489);--io-line:var(--line,#C2C7D1);--io-primary:var(--primary,#3447D4);--io-booked:var(--booked,#0B6B52);--io-conflict:var(--conflict,#A63C26);--io-waiting:var(--waiting,#7D5200);--io-on-fill:var(--on-fill,#FFFFFF);}@media (prefers-color-scheme:dark){.io-still{--io-ground:var(--ground,#0D111A);--io-surface:var(--surface,#151B28);--io-ink:var(--ink,#E8ECF4);--io-muted:var(--muted,#A3AEC3);--io-edge:var(--edge,#7C89A5);--io-line:var(--line,#2C364B);--io-primary:var(--primary,#8C9BFF);--io-booked:var(--booked,#4FD1A5);--io-conflict:var(--conflict,#FF8A70);--io-waiting:var(--waiting,#F0BC55);--io-on-fill:var(--on-fill,#0D111A);}}.io-still text{font-family:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;font-variant-numeric:tabular-nums}.io-still .mono{font-family:"IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace}.io-still .b{font-weight:600}.io-still .f-ground{fill:var(--io-ground)}.io-still .s-ground{stroke:var(--io-ground);fill:none}.io-still .f-surface{fill:var(--io-surface)}.io-still .s-surface{stroke:var(--io-surface);fill:none}.io-still .f-ink{fill:var(--io-ink)}.io-still .s-ink{stroke:var(--io-ink);fill:none}.io-still .f-muted{fill:var(--io-muted)}.io-still .s-muted{stroke:var(--io-muted);fill:none}.io-still .f-edge{fill:var(--io-edge)}.io-still .s-edge{stroke:var(--io-edge);fill:none}.io-still .f-line{fill:var(--io-line)}.io-still .s-line{stroke:var(--io-line);fill:none}.io-still .f-primary{fill:var(--io-primary)}.io-still .s-primary{stroke:var(--io-primary);fill:none}.io-still .f-booked{fill:var(--io-booked)}.io-still .s-booked{stroke:var(--io-booked);fill:none}.io-still .f-conflict{fill:var(--io-conflict)}.io-still .s-conflict{stroke:var(--io-conflict);fill:none}.io-still .f-waiting{fill:var(--io-waiting)}.io-still .s-waiting{stroke:var(--io-waiting);fill:none}.io-still .f-on-fill{fill:var(--io-on-fill)}.io-still .s-on-fill{stroke:var(--io-on-fill);fill:none}</style>
+<defs><pattern id="ch3-2-slot-lock-p-hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="3" height="8" class="f-ink"/></pattern></defs>
+<rect width="328" height="668" class="f-ground"/>
+<text x="16" y="28" font-size="14" text-anchor="start" class="f-muted">Order of events, downward</text>
+<path d="M16 40L312 40" class="s-edge" stroke-width="1" />
+<rect x="18" y="58" width="36" height="28" class="f-primary" />
+<rect x="14" y="54" width="4" height="36" class="f-ink" />
+<text x="36" y="78.3" font-size="18" text-anchor="middle" class="f-on-fill b">A</text>
+<text x="62" y="78" font-size="14" text-anchor="start" class="f-ink b">request A</text>
+<rect x="186" y="58" width="36" height="28" class="f-surface" />
+<rect x="186" y="58" width="36" height="28" fill="url(#ch3-2-slot-lock-p-hatch)"/>
+<path d="M186 58L222 58" class="s-ink" stroke-width="2" />
+<path d="M186 86L222 86" class="s-ink" stroke-width="2" />
+<rect x="182" y="54" width="4" height="36" class="f-ink" />
+<rect x="192.6" y="58.5" width="22.8" height="27" class="f-surface" />
+<text x="204" y="78.3" font-size="18" text-anchor="middle" class="f-ink b">B</text>
+<text x="230" y="78" font-size="14" text-anchor="start" class="f-ink b">request B</text>
+<text x="16" y="120" font-size="14" text-anchor="start" class="f-muted">1. Each student’s user row</text>
+<rect x="16" y="144" width="128" height="44" class="f-surface" />
+<rect x="16" y="144" width="128" height="44" class="s-edge" stroke-width="2"/>
+<text x="80" y="170.9" font-size="14" text-anchor="middle" class="f-ink b">student A</text>
+<path d="M8 136H152V158H145V147H15V158H8Z" class="f-ink" />
+<text x="80" y="208" font-size="14" text-anchor="middle" class="f-ink b">A holds</text>
+<text x="80" y="227" font-size="14" text-anchor="middle" class="f-ink mono">FOR NO KEY UPDATE</text>
+<rect x="184" y="144" width="128" height="44" class="f-surface" />
+<rect x="184" y="144" width="128" height="44" class="s-edge" stroke-width="2"/>
+<text x="248" y="170.9" font-size="14" text-anchor="middle" class="f-ink b">student B</text>
+<path d="M176 136H320V158H313V147H183V158H176Z" class="f-ink" />
+<text x="248" y="208" font-size="14" text-anchor="middle" class="f-ink b">B holds</text>
+<text x="248" y="227" font-size="14" text-anchor="middle" class="f-ink mono">FOR NO KEY UPDATE</text>
+<text x="16" y="268" font-size="14" text-anchor="start" class="f-muted">2. The one slot row</text>
+<rect x="24" y="296" width="168" height="48" class="f-surface" />
+<rect x="24" y="296" width="168" height="48" class="s-edge" stroke-width="2"/>
+<text x="108" y="324.9" font-size="14" text-anchor="middle" class="f-ink b">slot 1</text>
+<path d="M16 288H200V310H193V299H23V310H16Z" class="f-ink" />
+<text x="108" y="366" font-size="14" text-anchor="middle" class="f-ink b">A holds</text>
+<text x="108" y="385" font-size="14" text-anchor="middle" class="f-ink mono">FOR NO KEY UPDATE</text>
+<text x="16" y="420" font-size="14" text-anchor="start" class="f-muted">3. Booking and reminder</text>
+<path d="M24 464L304 464" class="s-edge" stroke-width="2" />
+<text x="164" y="456" font-size="14" text-anchor="middle" class="f-muted">nothing written</text>
+<rect x="16" y="540" width="224.8" height="30" class="f-surface" />
+<rect x="16" y="540" width="224.8" height="30" class="s-ink" stroke-width="2"/>
+<rect x="26" y="548" width="14" height="14" class="f-surface" />
+<path d="M26 549L40 549" class="s-ink" stroke-width="2" />
+<path d="M26 561L40 561" class="s-ink" stroke-width="2" />
+<rect x="23" y="546" width="3" height="18" class="f-ink" />
+<text x="47" y="559.9" font-size="14" text-anchor="start" class="f-ink b">A: holds user and slot</text>
+<rect x="16" y="580" width="216.4" height="30" class="f-surface" />
+<rect x="16" y="580" width="216.4" height="30" class="s-ink" stroke-width="2"/>
+<rect x="26" y="588" width="14" height="14" class="f-surface" />
+<path d="M26 589L40 589" class="s-ink" stroke-width="2" />
+<path d="M26 601L40 601" class="s-ink" stroke-width="2" />
+<rect x="23" y="586" width="3" height="18" class="f-ink" />
+<text x="47" y="599.9" font-size="14" text-anchor="start" class="f-ink b">B: holds its user row</text>
+<text x="16" y="642" font-size="14" text-anchor="start" class="f-ink b">A takes the slot lock.</text>
+</svg>

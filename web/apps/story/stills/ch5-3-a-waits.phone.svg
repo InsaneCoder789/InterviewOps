@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" class="io-still" viewBox="0 0 328 585" width="328" height="585" role="img" aria-labelledby="ch5-3-a-waits-p-t ch5-3-a-waits-p-d">
+<title id="ch5-3-a-waits-p-t">Lock removed: A waits for B</title>
+<desc id="ch5-3-a-waits-p-d">A&#x27;s overlap check finds B&#x27;s uncommitted booking. A dashed arrow shows A waiting for B.</desc>
+<style>.io-still{--io-ground:var(--ground,#E6E8EC);--io-surface:var(--surface,#FFFFFF);--io-ink:var(--ink,#121826);--io-muted:var(--muted,#4C5568);--io-edge:var(--edge,#6B7489);--io-line:var(--line,#C2C7D1);--io-primary:var(--primary,#3447D4);--io-booked:var(--booked,#0B6B52);--io-conflict:var(--conflict,#A63C26);--io-waiting:var(--waiting,#7D5200);--io-on-fill:var(--on-fill,#FFFFFF);}@media (prefers-color-scheme:dark){.io-still{--io-ground:var(--ground,#0D111A);--io-surface:var(--surface,#151B28);--io-ink:var(--ink,#E8ECF4);--io-muted:var(--muted,#A3AEC3);--io-edge:var(--edge,#7C89A5);--io-line:var(--line,#2C364B);--io-primary:var(--primary,#8C9BFF);--io-booked:var(--booked,#4FD1A5);--io-conflict:var(--conflict,#FF8A70);--io-waiting:var(--waiting,#F0BC55);--io-on-fill:var(--on-fill,#0D111A);}}.io-still text{font-family:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;font-variant-numeric:tabular-nums}.io-still .mono{font-family:"IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace}.io-still .b{font-weight:600}.io-still .f-ground{fill:var(--io-ground)}.io-still .s-ground{stroke:var(--io-ground);fill:none}.io-still .f-surface{fill:var(--io-surface)}.io-still .s-surface{stroke:var(--io-surface);fill:none}.io-still .f-ink{fill:var(--io-ink)}.io-still .s-ink{stroke:var(--io-ink);fill:none}.io-still .f-muted{fill:var(--io-muted)}.io-still .s-muted{stroke:var(--io-muted);fill:none}.io-still .f-edge{fill:var(--io-edge)}.io-still .s-edge{stroke:var(--io-edge);fill:none}.io-still .f-line{fill:var(--io-line)}.io-still .s-line{stroke:var(--io-line);fill:none}.io-still .f-primary{fill:var(--io-primary)}.io-still .s-primary{stroke:var(--io-primary);fill:none}.io-still .f-booked{fill:var(--io-booked)}.io-still .s-booked{stroke:var(--io-booked);fill:none}.io-still .f-conflict{fill:var(--io-conflict)}.io-still .s-conflict{stroke:var(--io-conflict);fill:none}.io-still .f-waiting{fill:var(--io-waiting)}.io-still .s-waiting{stroke:var(--io-waiting);fill:none}.io-still .f-on-fill{fill:var(--io-on-fill)}.io-still .s-on-fill{stroke:var(--io-on-fill);fill:none}</style>
+<defs><pattern id="ch5-3-a-waits-p-hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="3" height="8" class="f-ink"/></pattern></defs>
+<rect width="328" height="585" class="f-ground"/>
+<text x="16" y="28" font-size="14" text-anchor="start" class="f-muted">Order of events, downward</text>
+<path d="M16 40L312 40" class="s-edge" stroke-width="1" />
+<rect x="17" y="52" width="294" height="56" class="s-ink" stroke-width="2"/>
+<text x="28" y="72" font-size="14" text-anchor="start" class="f-ink b">Lock removed on purpose, in a local</text>
+<text x="28" y="92" font-size="14" text-anchor="start" class="f-ink b">test</text>
+<rect x="52" y="136" width="224" height="62" class="f-surface" />
+<rect x="52" y="136" width="224" height="62" class="s-edge" stroke-width="2"/>
+<text x="164" y="156" font-size="14" text-anchor="middle" class="f-ink b">one student row</text>
+<rect x="94" y="166" width="140" height="24" class="s-edge" stroke-width="2" stroke-dasharray="5 4"/>
+<text x="164" y="183" font-size="14" text-anchor="middle" class="f-muted">no lock</text>
+<rect x="84" y="244" width="160" height="52" class="f-surface" />
+<path d="M84 244L244 244" class="s-waiting" stroke-width="2" stroke-dasharray="7 5"/>
+<path d="M84 296L244 296" class="s-waiting" stroke-width="2" stroke-dasharray="7 5"/>
+<rect x="80" y="240" width="4" height="60" class="f-ink" />
+<text x="164" y="274.9" font-size="14" text-anchor="middle" class="f-waiting b">A, slot 1</text>
+<rect x="84" y="408" width="160" height="52" class="f-surface" />
+<path d="M84 408L244 408" class="s-ink" stroke-width="2" stroke-dasharray="7 5"/>
+<path d="M84 460L244 460" class="s-ink" stroke-width="2" stroke-dasharray="7 5"/>
+<rect x="80" y="404" width="4" height="60" class="f-ink" />
+<text x="164" y="438.9" font-size="14" text-anchor="middle" class="f-ink b">B, slot 2</text>
+<path d="M76 270C20 284 20 408 74 434" class="s-waiting" stroke-width="4" stroke-dasharray="7 5"/>
+<path d="M79 436L65.5974 436.609L70.4711 425.643Z" class="f-waiting" />
+<text x="164" y="332" font-size="14" text-anchor="middle" class="f-waiting b">A waits for B</text>
+<text x="164" y="484" font-size="14" text-anchor="middle" class="f-ink mono">booking_no_student_overlap</text>
+<rect x="16" y="494" width="296" height="8" class="f-ink" />
+<text x="16" y="540" font-size="14" text-anchor="start" class="f-ink b">A’s overlap check finds B’s</text>
+<text x="16" y="559" font-size="14" text-anchor="start" class="f-ink b">uncommitted row and waits.</text>
+</svg>

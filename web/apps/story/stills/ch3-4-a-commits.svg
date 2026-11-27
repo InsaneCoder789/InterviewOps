@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" class="io-still" viewBox="0 0 720 668" width="720" height="668" role="img" aria-labelledby="ch3-4-a-commits-w-t ch3-4-a-commits-w-d">
+<title id="ch3-4-a-commits-w-t">A writes booking and reminder, then commits</title>
+<desc id="ch3-4-a-commits-w-d">A booking and its reminder appear as a joined pair. A&#x27;s locks on its user row and the slot are released.</desc>
+<style>.io-still{--io-ground:var(--ground,#E6E8EC);--io-surface:var(--surface,#FFFFFF);--io-ink:var(--ink,#121826);--io-muted:var(--muted,#4C5568);--io-edge:var(--edge,#6B7489);--io-line:var(--line,#C2C7D1);--io-primary:var(--primary,#3447D4);--io-booked:var(--booked,#0B6B52);--io-conflict:var(--conflict,#A63C26);--io-waiting:var(--waiting,#7D5200);--io-on-fill:var(--on-fill,#FFFFFF);}@media (prefers-color-scheme:dark){.io-still{--io-ground:var(--ground,#0D111A);--io-surface:var(--surface,#151B28);--io-ink:var(--ink,#E8ECF4);--io-muted:var(--muted,#A3AEC3);--io-edge:var(--edge,#7C89A5);--io-line:var(--line,#2C364B);--io-primary:var(--primary,#8C9BFF);--io-booked:var(--booked,#4FD1A5);--io-conflict:var(--conflict,#FF8A70);--io-waiting:var(--waiting,#F0BC55);--io-on-fill:var(--on-fill,#0D111A);}}.io-still text{font-family:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;font-variant-numeric:tabular-nums}.io-still .mono{font-family:"IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace}.io-still .b{font-weight:600}.io-still .f-ground{fill:var(--io-ground)}.io-still .s-ground{stroke:var(--io-ground);fill:none}.io-still .f-surface{fill:var(--io-surface)}.io-still .s-surface{stroke:var(--io-surface);fill:none}.io-still .f-ink{fill:var(--io-ink)}.io-still .s-ink{stroke:var(--io-ink);fill:none}.io-still .f-muted{fill:var(--io-muted)}.io-still .s-muted{stroke:var(--io-muted);fill:none}.io-still .f-edge{fill:var(--io-edge)}.io-still .s-edge{stroke:var(--io-edge);fill:none}.io-still .f-line{fill:var(--io-line)}.io-still .s-line{stroke:var(--io-line);fill:none}.io-still .f-primary{fill:var(--io-primary)}.io-still .s-primary{stroke:var(--io-primary);fill:none}.io-still .f-booked{fill:var(--io-booked)}.io-still .s-booked{stroke:var(--io-booked);fill:none}.io-still .f-conflict{fill:var(--io-conflict)}.io-still .s-conflict{stroke:var(--io-conflict);fill:none}.io-still .f-waiting{fill:var(--io-waiting)}.io-still .s-waiting{stroke:var(--io-waiting);fill:none}.io-still .f-on-fill{fill:var(--io-on-fill)}.io-still .s-on-fill{stroke:var(--io-on-fill);fill:none}</style>
+<defs><pattern id="ch3-4-a-commits-w-hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="3" height="8" class="f-ink"/></pattern></defs>
+<rect width="720" height="668" class="f-ground"/>
+<text x="16" y="28" font-size="16" text-anchor="start" class="f-muted">Order of events, downward</text>
+<path d="M16 40L704 40" class="s-edge" stroke-width="1" />
+<rect x="88" y="58" width="36" height="28" class="f-primary" />
+<rect x="84" y="54" width="4" height="36" class="f-ink" />
+<text x="106" y="78.3" font-size="18" text-anchor="middle" class="f-on-fill b">A</text>
+<text x="132" y="78" font-size="16" text-anchor="start" class="f-ink b">request A</text>
+<rect x="508" y="58" width="36" height="28" class="f-surface" />
+<rect x="508" y="58" width="36" height="28" fill="url(#ch3-4-a-commits-w-hatch)"/>
+<path d="M508 58L544 58" class="s-ink" stroke-width="2" />
+<path d="M508 86L544 86" class="s-ink" stroke-width="2" />
+<rect x="504" y="54" width="4" height="36" class="f-ink" />
+<rect x="514.6" y="58.5" width="22.8" height="27" class="f-surface" />
+<text x="526" y="78.3" font-size="18" text-anchor="middle" class="f-ink b">B</text>
+<text x="552" y="78" font-size="16" text-anchor="start" class="f-ink b">request B</text>
+<text x="16" y="120" font-size="16" text-anchor="start" class="f-muted">1. Each student’s user row</text>
+<rect x="40" y="144" width="220" height="44" class="f-surface" />
+<rect x="40" y="144" width="220" height="44" class="s-edge" stroke-width="2"/>
+<text x="150" y="171.6" font-size="16" text-anchor="middle" class="f-ink b">student A</text>
+<text x="150" y="208" font-size="16" text-anchor="middle" class="f-muted">released</text>
+<rect x="460" y="144" width="220" height="44" class="f-surface" />
+<rect x="460" y="144" width="220" height="44" class="s-edge" stroke-width="2"/>
+<text x="570" y="171.6" font-size="16" text-anchor="middle" class="f-ink b">student B</text>
+<path d="M452 136H688V158H681V147H459V158H452Z" class="f-ink" />
+<text x="570" y="208" font-size="16" text-anchor="middle" class="f-ink b">B holds</text>
+<text x="570" y="227" font-size="15" text-anchor="middle" class="f-ink mono">FOR NO KEY UPDATE</text>
+<text x="16" y="268" font-size="16" text-anchor="start" class="f-muted">2. The one slot row</text>
+<rect x="220" y="296" width="280" height="48" class="f-surface" />
+<rect x="220" y="296" width="280" height="48" class="s-edge" stroke-width="2"/>
+<text x="360" y="325.6" font-size="16" text-anchor="middle" class="f-ink b">slot 1</text>
+<text x="360" y="366" font-size="16" text-anchor="middle" class="f-muted">released</text>
+<text x="16" y="420" font-size="16" text-anchor="start" class="f-muted">3. Booking and reminder</text>
+<rect x="144" y="444" width="216" height="40" class="f-booked" />
+<rect x="140" y="440" width="4" height="48" class="f-ink" />
+<text x="252" y="469.6" font-size="16" text-anchor="middle" class="f-on-fill b">booking</text>
+<rect x="364" y="444" width="216" height="40" class="f-surface" />
+<rect x="360" y="440" width="4" height="48" class="f-ink" />
+<text x="472" y="469.6" font-size="16" text-anchor="middle" class="f-ink b">reminder</text>
+<rect x="352" y="460" width="16" height="8" class="f-ink" />
+<text x="360" y="506" font-size="16" text-anchor="middle" class="f-ink">Written and committed together by A</text>
+<rect x="16" y="540" width="203.2" height="30" class="f-surface" />
+<rect x="16" y="540" width="203.2" height="30" class="s-booked" stroke-width="2"/>
+<rect x="26" y="548" width="14" height="14" class="f-booked" />
+<text x="47" y="560.6" font-size="16" text-anchor="start" class="f-booked b">A: committed, 201</text>
+<rect x="16" y="580" width="222.4" height="30" class="f-surface" />
+<rect x="16" y="580" width="222.4" height="30" class="s-ink" stroke-width="2"/>
+<rect x="26" y="588" width="14" height="14" class="f-surface" />
+<path d="M26 589L40 589" class="s-ink" stroke-width="2" />
+<path d="M26 601L40 601" class="s-ink" stroke-width="2" />
+<rect x="23" y="586" width="3" height="18" class="f-ink" />
+<text x="47" y="600.6" font-size="16" text-anchor="start" class="f-ink b">B: next at the slot</text>
+<text x="16" y="642" font-size="16" text-anchor="start" class="f-ink b">A checks, writes and commits. All of A’s locks open at once.</text>
+</svg>

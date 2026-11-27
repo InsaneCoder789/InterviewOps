@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" class="io-still" viewBox="0 0 328 589" width="328" height="589" role="img" aria-labelledby="ch6-3-repeat-send-p-t ch6-3-repeat-send-p-d">
+<title id="ch6-3-repeat-send-p-t">A reminder can be sent twice</title>
+<desc id="ch6-3-repeat-send-p-d">W1 claims a reminder and the mail server accepts the email, but W1 dies before recording it. The 5 minute lease expires, W2 claims the reminder and sends it again. Delivery is at-least-once.</desc>
+<style>.io-still{--io-ground:var(--ground,#E6E8EC);--io-surface:var(--surface,#FFFFFF);--io-ink:var(--ink,#121826);--io-muted:var(--muted,#4C5568);--io-edge:var(--edge,#6B7489);--io-line:var(--line,#C2C7D1);--io-primary:var(--primary,#3447D4);--io-booked:var(--booked,#0B6B52);--io-conflict:var(--conflict,#A63C26);--io-waiting:var(--waiting,#7D5200);--io-on-fill:var(--on-fill,#FFFFFF);}@media (prefers-color-scheme:dark){.io-still{--io-ground:var(--ground,#0D111A);--io-surface:var(--surface,#151B28);--io-ink:var(--ink,#E8ECF4);--io-muted:var(--muted,#A3AEC3);--io-edge:var(--edge,#7C89A5);--io-line:var(--line,#2C364B);--io-primary:var(--primary,#8C9BFF);--io-booked:var(--booked,#4FD1A5);--io-conflict:var(--conflict,#FF8A70);--io-waiting:var(--waiting,#F0BC55);--io-on-fill:var(--on-fill,#0D111A);}}.io-still text{font-family:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;font-variant-numeric:tabular-nums}.io-still .mono{font-family:"IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace}.io-still .b{font-weight:600}.io-still .f-ground{fill:var(--io-ground)}.io-still .s-ground{stroke:var(--io-ground);fill:none}.io-still .f-surface{fill:var(--io-surface)}.io-still .s-surface{stroke:var(--io-surface);fill:none}.io-still .f-ink{fill:var(--io-ink)}.io-still .s-ink{stroke:var(--io-ink);fill:none}.io-still .f-muted{fill:var(--io-muted)}.io-still .s-muted{stroke:var(--io-muted);fill:none}.io-still .f-edge{fill:var(--io-edge)}.io-still .s-edge{stroke:var(--io-edge);fill:none}.io-still .f-line{fill:var(--io-line)}.io-still .s-line{stroke:var(--io-line);fill:none}.io-still .f-primary{fill:var(--io-primary)}.io-still .s-primary{stroke:var(--io-primary);fill:none}.io-still .f-booked{fill:var(--io-booked)}.io-still .s-booked{stroke:var(--io-booked);fill:none}.io-still .f-conflict{fill:var(--io-conflict)}.io-still .s-conflict{stroke:var(--io-conflict);fill:none}.io-still .f-waiting{fill:var(--io-waiting)}.io-still .s-waiting{stroke:var(--io-waiting);fill:none}.io-still .f-on-fill{fill:var(--io-on-fill)}.io-still .s-on-fill{stroke:var(--io-on-fill);fill:none}</style>
+<defs><pattern id="ch6-3-repeat-send-p-hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="3" height="8" class="f-ink"/></pattern></defs>
+<rect width="328" height="589" class="f-ground"/>
+<text x="16" y="28" font-size="14" text-anchor="start" class="f-muted">Order of events, downward</text>
+<path d="M16 40L312 40" class="s-edge" stroke-width="1" />
+<rect x="25" y="66" width="42" height="42" class="f-surface" />
+<rect x="25" y="66" width="42" height="42" class="s-ink" stroke-width="3"/>
+<text x="46" y="93" font-size="16" text-anchor="middle" class="f-ink b mono">W1</text>
+<text x="104" y="82" font-size="14" text-anchor="start" class="f-ink b">Claims the reminder. Lease:</text>
+<text x="104" y="101" font-size="14" text-anchor="start" class="f-ink b">5 minutes.</text>
+<rect x="40" y="122" width="12" height="196" class="f-waiting" />
+<rect x="34" y="118" width="24" height="4" class="f-ink" />
+<text x="62" y="140" font-size="14" text-anchor="start" class="f-waiting b">lease</text>
+<rect x="104" y="130" width="46" height="30" class="f-surface" />
+<rect x="104" y="130" width="46" height="30" class="s-ink" stroke-width="2"/>
+<path d="M104 130L127 147L150 130" class="s-ink" stroke-width="2"/>
+<text x="162" y="142" font-size="14" text-anchor="start" class="f-ink">Email 1: mail</text>
+<text x="162" y="161" font-size="14" text-anchor="start" class="f-ink">server accepts</text>
+<rect x="25" y="200" width="42" height="42" class="f-surface" />
+<rect x="25" y="200" width="42" height="42" class="s-edge" stroke-width="3" stroke-dasharray="6 4"/>
+<text x="46" y="227" font-size="16" text-anchor="middle" class="f-ink b mono">W1</text>
+<path d="M18 234L74 234" class="s-ink" stroke-width="2" />
+<text x="104" y="216" font-size="14" text-anchor="start" class="f-ink b">W1 dies before recording</text>
+<text x="104" y="235" font-size="14" text-anchor="start" class="f-ink b">it.</text>
+<text x="104" y="300" font-size="14" text-anchor="start" class="f-ink b">Lease expires. Row still</text>
+<text x="104" y="319" font-size="14" text-anchor="start" class="f-ink b">says sending.</text>
+<rect x="25" y="352" width="42" height="42" class="f-surface" />
+<rect x="25" y="352" width="42" height="42" class="s-ink" stroke-width="3"/>
+<text x="46" y="379" font-size="16" text-anchor="middle" class="f-ink b mono">W2</text>
+<text x="104" y="368" font-size="14" text-anchor="start" class="f-ink b">Claims it again.</text>
+<rect x="104" y="412" width="46" height="30" class="f-surface" />
+<rect x="104" y="412" width="46" height="30" class="s-ink" stroke-width="2"/>
+<path d="M104 412L127 429L150 412" class="s-ink" stroke-width="2"/>
+<text x="162" y="424" font-size="14" text-anchor="start" class="f-ink">Email 2: sent again</text>
+<text x="16" y="488" font-size="18" text-anchor="start" class="f-ink b">Two emails. Delivery is</text>
+<text x="16" y="512" font-size="18" text-anchor="start" class="f-ink b">at-least-once.</text>
+<text x="16" y="544" font-size="14" text-anchor="start" class="f-muted">A result from a superseded attempt</text>
+<text x="16" y="563" font-size="14" text-anchor="start" class="f-muted">changes nothing.</text>
+</svg>

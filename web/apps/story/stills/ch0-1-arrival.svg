@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" class="io-still" viewBox="0 0 720 382" width="720" height="382" role="img" aria-labelledby="ch0-1-arrival-w-t ch0-1-arrival-w-d">
+<title id="ch0-1-arrival-w-t">Two requests reach one slot</title>
+<desc id="ch0-1-arrival-w-d">Request A and request B stand level, just short of a single one-hour slot. Neither has an answer yet.</desc>
+<style>.io-still{--io-ground:var(--ground,#E6E8EC);--io-surface:var(--surface,#FFFFFF);--io-ink:var(--ink,#121826);--io-muted:var(--muted,#4C5568);--io-edge:var(--edge,#6B7489);--io-line:var(--line,#C2C7D1);--io-primary:var(--primary,#3447D4);--io-booked:var(--booked,#0B6B52);--io-conflict:var(--conflict,#A63C26);--io-waiting:var(--waiting,#7D5200);--io-on-fill:var(--on-fill,#FFFFFF);}@media (prefers-color-scheme:dark){.io-still{--io-ground:var(--ground,#0D111A);--io-surface:var(--surface,#151B28);--io-ink:var(--ink,#E8ECF4);--io-muted:var(--muted,#A3AEC3);--io-edge:var(--edge,#7C89A5);--io-line:var(--line,#2C364B);--io-primary:var(--primary,#8C9BFF);--io-booked:var(--booked,#4FD1A5);--io-conflict:var(--conflict,#FF8A70);--io-waiting:var(--waiting,#F0BC55);--io-on-fill:var(--on-fill,#0D111A);}}.io-still text{font-family:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;font-variant-numeric:tabular-nums}.io-still .mono{font-family:"IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace}.io-still .b{font-weight:600}.io-still .f-ground{fill:var(--io-ground)}.io-still .s-ground{stroke:var(--io-ground);fill:none}.io-still .f-surface{fill:var(--io-surface)}.io-still .s-surface{stroke:var(--io-surface);fill:none}.io-still .f-ink{fill:var(--io-ink)}.io-still .s-ink{stroke:var(--io-ink);fill:none}.io-still .f-muted{fill:var(--io-muted)}.io-still .s-muted{stroke:var(--io-muted);fill:none}.io-still .f-edge{fill:var(--io-edge)}.io-still .s-edge{stroke:var(--io-edge);fill:none}.io-still .f-line{fill:var(--io-line)}.io-still .s-line{stroke:var(--io-line);fill:none}.io-still .f-primary{fill:var(--io-primary)}.io-still .s-primary{stroke:var(--io-primary);fill:none}.io-still .f-booked{fill:var(--io-booked)}.io-still .s-booked{stroke:var(--io-booked);fill:none}.io-still .f-conflict{fill:var(--io-conflict)}.io-still .s-conflict{stroke:var(--io-conflict);fill:none}.io-still .f-waiting{fill:var(--io-waiting)}.io-still .s-waiting{stroke:var(--io-waiting);fill:none}.io-still .f-on-fill{fill:var(--io-on-fill)}.io-still .s-on-fill{stroke:var(--io-on-fill);fill:none}</style>
+<defs><pattern id="ch0-1-arrival-w-hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="3" height="8" class="f-ink"/></pattern></defs>
+<rect width="720" height="382" class="f-ground"/>
+<text x="16" y="28" font-size="16" text-anchor="start" class="f-muted">Order of events, downward</text>
+<path d="M16 40L704 40" class="s-edge" stroke-width="1" />
+<text x="170" y="70" font-size="16" text-anchor="middle" class="f-ink b">request A</text>
+<text x="550" y="70" font-size="16" text-anchor="middle" class="f-ink b">request B</text>
+<path d="M170 82L170 142" class="s-edge" stroke-width="2" stroke-dasharray="4 5"/>
+<path d="M550 82L550 142" class="s-edge" stroke-width="2" stroke-dasharray="4 5"/>
+<rect x="142" y="150" width="56" height="40" class="f-primary" />
+<rect x="138" y="146" width="4" height="48" class="f-ink" />
+<text x="170" y="176.3" font-size="18" text-anchor="middle" class="f-on-fill b">A</text>
+<rect x="522" y="150" width="56" height="40" class="f-surface" />
+<rect x="522" y="150" width="56" height="40" fill="url(#ch0-1-arrival-w-hatch)"/>
+<path d="M522 150L578 150" class="s-ink" stroke-width="2" />
+<path d="M522 190L578 190" class="s-ink" stroke-width="2" />
+<rect x="518" y="146" width="4" height="48" class="f-ink" />
+<rect x="538.6" y="156.5" width="22.8" height="27" class="f-surface" />
+<text x="550" y="176.3" font-size="18" text-anchor="middle" class="f-ink b">B</text>
+<rect x="200" y="218" width="320" height="92" class="f-surface" />
+<rect x="200" y="218" width="320" height="92" class="s-edge" stroke-width="2"/>
+<text x="214" y="242" font-size="16" text-anchor="start" class="f-ink b">slot 1: one hour</text>
+<rect x="222" y="256" width="276" height="40" class="f-surface" />
+<rect x="218" y="252" width="4" height="48" class="f-ink" />
+<text x="360" y="281.25" font-size="15" text-anchor="middle" class="f-ink b mono">[start, end)</text>
+<text x="360" y="356" font-size="28" text-anchor="middle" class="f-ink b">Which one gets it?</text>
+</svg>

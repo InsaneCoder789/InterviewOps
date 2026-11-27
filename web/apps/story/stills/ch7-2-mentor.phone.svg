@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" class="io-still" viewBox="0 0 328 714" width="328" height="714" role="img" aria-labelledby="ch7-2-mentor-p-t ch7-2-mentor-p-d">
+<title id="ch7-2-mentor-p-t">What the mentor sees</title>
+<desc id="ch7-2-mentor-p-d">Mentor 1 sees own slots 1, 2, 4 and 5 and booking 1 on slot 1. Mentor 2&#x27;s slot, its booking and users are absent.</desc>
+<style>.io-still{--io-ground:var(--ground,#E6E8EC);--io-surface:var(--surface,#FFFFFF);--io-ink:var(--ink,#121826);--io-muted:var(--muted,#4C5568);--io-edge:var(--edge,#6B7489);--io-line:var(--line,#C2C7D1);--io-primary:var(--primary,#3447D4);--io-booked:var(--booked,#0B6B52);--io-conflict:var(--conflict,#A63C26);--io-waiting:var(--waiting,#7D5200);--io-on-fill:var(--on-fill,#FFFFFF);}@media (prefers-color-scheme:dark){.io-still{--io-ground:var(--ground,#0D111A);--io-surface:var(--surface,#151B28);--io-ink:var(--ink,#E8ECF4);--io-muted:var(--muted,#A3AEC3);--io-edge:var(--edge,#7C89A5);--io-line:var(--line,#2C364B);--io-primary:var(--primary,#8C9BFF);--io-booked:var(--booked,#4FD1A5);--io-conflict:var(--conflict,#FF8A70);--io-waiting:var(--waiting,#F0BC55);--io-on-fill:var(--on-fill,#0D111A);}}.io-still text{font-family:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;font-variant-numeric:tabular-nums}.io-still .mono{font-family:"IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace}.io-still .b{font-weight:600}.io-still .f-ground{fill:var(--io-ground)}.io-still .s-ground{stroke:var(--io-ground);fill:none}.io-still .f-surface{fill:var(--io-surface)}.io-still .s-surface{stroke:var(--io-surface);fill:none}.io-still .f-ink{fill:var(--io-ink)}.io-still .s-ink{stroke:var(--io-ink);fill:none}.io-still .f-muted{fill:var(--io-muted)}.io-still .s-muted{stroke:var(--io-muted);fill:none}.io-still .f-edge{fill:var(--io-edge)}.io-still .s-edge{stroke:var(--io-edge);fill:none}.io-still .f-line{fill:var(--io-line)}.io-still .s-line{stroke:var(--io-line);fill:none}.io-still .f-primary{fill:var(--io-primary)}.io-still .s-primary{stroke:var(--io-primary);fill:none}.io-still .f-booked{fill:var(--io-booked)}.io-still .s-booked{stroke:var(--io-booked);fill:none}.io-still .f-conflict{fill:var(--io-conflict)}.io-still .s-conflict{stroke:var(--io-conflict);fill:none}.io-still .f-waiting{fill:var(--io-waiting)}.io-still .s-waiting{stroke:var(--io-waiting);fill:none}.io-still .f-on-fill{fill:var(--io-on-fill)}.io-still .s-on-fill{stroke:var(--io-on-fill);fill:none}</style>
+<defs><pattern id="ch7-2-mentor-p-hatch" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="3" height="8" class="f-ink"/></pattern></defs>
+<rect width="328" height="714" class="f-ground"/>
+<text x="16" y="28" font-size="14" text-anchor="start" class="f-muted">Same illustrative rows, one role</text>
+<path d="M16 40L312 40" class="s-edge" stroke-width="1" />
+<text x="16" y="72" font-size="20" text-anchor="start" class="f-ink b">Viewing as mentor 1</text>
+<text x="16" y="108" font-size="14" text-anchor="start" class="f-muted b">Slots</text>
+<rect x="20" y="122" width="292" height="34" class="f-surface" />
+<rect x="16" y="118" width="4" height="42" class="f-ink" />
+<text x="30" y="144" font-size="14" text-anchor="start" class="f-ink">slot 1, mentor 1</text>
+<rect x="216" y="132" width="14" height="14" class="f-booked" />
+<text x="238" y="144" font-size="14" text-anchor="start" class="f-ink b">booked</text>
+<rect x="20" y="168" width="292" height="34" class="f-surface" />
+<rect x="16" y="164" width="4" height="42" class="f-ink" />
+<text x="30" y="190" font-size="14" text-anchor="start" class="f-ink">slot 2, mentor 1</text>
+<rect x="216" y="178" width="14" height="14" class="f-surface" />
+<path d="M216 179L230 179" class="s-ink" stroke-width="2" />
+<path d="M216 191L230 191" class="s-ink" stroke-width="2" />
+<rect x="213" y="176" width="3" height="18" class="f-ink" />
+<text x="238" y="190" font-size="14" text-anchor="start" class="f-ink b">open</text>
+<rect x="20" y="260" width="292" height="34" class="f-surface" />
+<rect x="16" y="256" width="4" height="42" class="f-ink" />
+<text x="30" y="282" font-size="14" text-anchor="start" class="f-ink">slot 4, mentor 1</text>
+<text x="238" y="282" font-size="14" text-anchor="start" class="f-ink b">past</text>
+<path d="M216 277L230 277" class="s-ink" stroke-width="2" />
+<rect x="20" y="306" width="292" height="34" class="f-surface" />
+<rect x="16" y="302" width="4" height="42" class="f-ink" />
+<text x="30" y="328" font-size="14" text-anchor="start" class="f-ink">slot 5, mentor 1</text>
+<rect x="217" y="317" width="12" height="12" class="s-edge" stroke-width="2"/>
+<path d="M214 323L232 323" class="s-ink" stroke-width="2" />
+<text x="238" y="328" font-size="14" text-anchor="start" class="f-ink b">cancelled</text>
+<text x="16" y="368" font-size="14" text-anchor="start" class="f-muted b">Bookings</text>
+<rect x="20" y="382" width="292" height="46" class="f-surface" />
+<rect x="16" y="378" width="4" height="54" class="f-ink" />
+<text x="30" y="401" font-size="14" text-anchor="start" class="f-ink">booking 1, slot 1</text>
+<text x="30" y="420" font-size="14" text-anchor="start" class="f-muted">by student 1</text>
+<text x="16" y="514" font-size="14" text-anchor="start" class="f-muted b">Users and roles</text>
+<text x="16" y="606" font-size="14" text-anchor="start" class="f-ink b">Own slots, including past and</text>
+<text x="16" y="625" font-size="14" text-anchor="start" class="f-ink b">cancelled ones, and the bookings on</text>
+<text x="16" y="644" font-size="14" text-anchor="start" class="f-ink b">them.</text>
+<text x="16" y="669" font-size="14" text-anchor="start" class="f-muted">Blank space is a row this role is not</text>
+<text x="16" y="688" font-size="14" text-anchor="start" class="f-muted">given.</text>
+</svg>
