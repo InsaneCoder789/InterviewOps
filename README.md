@@ -139,7 +139,8 @@ python manage.py send_notifications
 - A user made with `createsuperuser` gets the admin role.
 - `send_notifications --once` processes due email and exits.
 - `python manage.py seed_demo` adds made-up users and sessions.
-- With Docker, `docker compose up --build` starts everything instead.
+- With Docker, run `sh scripts/local_env.sh` once, then
+  `docker compose up --build`.
 - A migration creates the `btree_gist` extension, so the database user needs
   permission to create it.
 - Django does not read `.env` files here. [`.env.example`](.env.example) lists
@@ -150,8 +151,8 @@ python manage.py send_notifications
 ## Walkthrough
 
 With the server running on a fresh database, this publishes a slot, books it,
-shows a conflict and cancels. It uses `curl` and `python3`, and the passwords are
-throwaway values for local use. Run it in `bash` (type `bash` first if your shell
+shows a conflict and cancels. It uses `curl` and `python3`, and each run
+generates its own password. Run it in `bash` (type `bash` first if your shell
 is zsh), in a third terminal with the virtualenv active and the same two
 variables exported.
 
@@ -161,24 +162,25 @@ json() { python3 -c "import sys, json; print(json.load(sys.stdin)['$1'])"; }
 post() { curl -sS -H 'Content-Type: application/json' "$@"; }
 
 # 1. Create an admin for this walkthrough
-DJANGO_SUPERUSER_PASSWORD='local-demo-admin-pass' python manage.py createsuperuser \
+DEMO_PASS="$(python3 -c 'import secrets; print(secrets.token_urlsafe(16))')"
+DJANGO_SUPERUSER_PASSWORD="$DEMO_PASS" python manage.py createsuperuser \
   --noinput --username demo-admin --email demo-admin@example.test
 
 # 2. Register three users; all start as students
 register() {
   post "$BASE/api/auth/register/" \
-    -d "{\"username\":\"$1\",\"email\":\"$1@example.test\",\"password\":\"local-demo-pass-$1\"}"
+    -d "{\"username\":\"$1\",\"email\":\"$1@example.test\",\"password\":\"$DEMO_PASS\"}"
 }
 MAYA_ID=$(register maya | json id)
 register ravi; echo
 register sam; echo
 
 # 3. Log in
-login() { post "$BASE/api/auth/login/" -d "{\"username\":\"$1\",\"password\":\"$2\"}" | json token; }
-ADMIN=$(login demo-admin local-demo-admin-pass)
-MAYA=$(login maya local-demo-pass-maya)
-RAVI=$(login ravi local-demo-pass-ravi)
-SAM=$(login sam local-demo-pass-sam)
+login() { post "$BASE/api/auth/login/" -d "{\"username\":\"$1\",\"password\":\"$DEMO_PASS\"}" | json token; }
+ADMIN=$(login demo-admin)
+MAYA=$(login maya)
+RAVI=$(login ravi)
+SAM=$(login sam)
 
 # 4. The admin makes maya a mentor
 post -X PATCH "$BASE/api/users/$MAYA_ID/role/" \

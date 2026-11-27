@@ -2,6 +2,7 @@
 __pycache__/
 *.pyc
 .env
+.dev-secret-key*
 staticfiles/
 *.dump
 PLAN.md

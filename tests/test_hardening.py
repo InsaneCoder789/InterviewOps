@@ -48,7 +48,7 @@ class LoginRaceTests(Factory, TestCase):
     def test_password_changed_mid_login(self):
         def change(user):
             fresh = User.objects.get(pk=user.pk)
-            fresh.set_password("a-completely-new-passphrase-55")
+            fresh.set_password(PASSWORD[::-1])
             fresh.save()
 
         self.login_while(change)

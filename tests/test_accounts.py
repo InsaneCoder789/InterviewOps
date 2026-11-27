@@ -1,4 +1,5 @@
 import re
+import secrets
 from datetime import timedelta
 from urllib.parse import parse_qs
 
@@ -14,7 +15,7 @@ from notifications.models import Notification
 
 from .base import PASSWORD, Factory
 
-NEW_PASSWORD = "another-test-passphrase-902"
+NEW_PASSWORD = secrets.token_urlsafe(16)
 
 
 def emailed_values():
@@ -88,7 +89,7 @@ class InvitationTests(Factory, TestCase):
     def test_weak_password_or_taken_username_leaves_the_invitation_open(self):
         self.invite()
         token = emailed_values()["token"]
-        self.assertIn("password", self.accept(token, password="123").data)
+        self.assertIn("password", self.accept(token, password="1" * 3).data)
         self.assertIn("username", self.accept(token, username="boss").data)
         self.assertEqual(self.accept(token).status_code, 201)
 
@@ -124,7 +125,7 @@ class PasswordTests(Factory, TestCase):
     def test_reset_changes_the_password_once_and_signs_out(self):
         self.assertEqual(self.request_reset("STUDENT@example.test").status_code, 202)
         values = emailed_values()
-        self.assertEqual(self.confirm(values, "123").status_code, 400)
+        self.assertEqual(self.confirm(values, "1" * 3).status_code, 400)
         self.assertEqual(self.confirm(values).status_code, 204)
         self.assertEqual(self.client.get("/api/auth/me/").status_code, 401)
         self.assertEqual((self.login(PASSWORD), self.login(NEW_PASSWORD)), (400, 200))
@@ -151,7 +152,8 @@ class PasswordTests(Factory, TestCase):
     def test_change_requires_the_current_password_and_rotates_the_token(self):
         old = Token.objects.get(user=self.student).key
         wrong = self.client.post(
-            "/api/auth/password/", {"current_password": "nope", "new_password": NEW_PASSWORD}
+            "/api/auth/password/",
+            {"current_password": secrets.token_urlsafe(16), "new_password": NEW_PASSWORD},
         )
         self.assertEqual(wrong.status_code, 400)
         response = self.client.post(

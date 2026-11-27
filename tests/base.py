@@ -1,3 +1,4 @@
+import secrets
 from datetime import timedelta
 
 from django.core.cache import cache
@@ -10,7 +11,7 @@ from accounts.models import User
 from scheduling import services
 from scheduling.models import Booking, Slot
 
-PASSWORD = "test-only-passphrase-417"
+PASSWORD = secrets.token_urlsafe(16)
 
 
 class Factory:

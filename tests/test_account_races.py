@@ -1,5 +1,6 @@
 """Simultaneous requests against accounts, invitations and the mail queue."""
 
+import secrets
 from datetime import timedelta
 
 from django.core.cache import cache
@@ -20,7 +21,7 @@ from scheduling import services
 from .base import PASSWORD, Factory
 from .test_concurrency import ROUNDS, race
 
-NEW = "another-test-passphrase-902"
+NEW = secrets.token_urlsafe(16)
 
 
 class AccountRaceTests(Factory, TransactionTestCase):

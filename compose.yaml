@@ -1,12 +1,14 @@
-# Local development only: debug mode, a throwaway database password, and mail
-# printed to the worker's log. Never use this file to host anything.
+# Local development only: debug mode, and mail printed to the worker's log.
+# Never use this file to host anything.
+#   sh scripts/local_env.sh    # once: random local values in .env
 #   docker compose up --build
 #   docker compose exec api python manage.py seed_demo
 x-app: &app
   build: .
   environment:
     DJANGO_DEBUG: "1"
-    DATABASE_URL: postgresql://interviewops:local-only@db:5432/interviewops
+    DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?run sh scripts/local_env.sh first}
+    DATABASE_URL: postgresql://interviewops:${POSTGRES_PASSWORD:?run sh scripts/local_env.sh first}@db:5432/interviewops
     CORS_ALLOWED_ORIGINS: http://localhost:5173
     APP_BASE_URL: http://localhost:5173
   depends_on:
@@ -18,7 +20,7 @@ services:
     image: postgres:18
     environment:
       POSTGRES_USER: interviewops
-      POSTGRES_PASSWORD: local-only
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?run sh scripts/local_env.sh first}
       POSTGRES_DB: interviewops
     volumes:
       - data:/var/lib/postgresql

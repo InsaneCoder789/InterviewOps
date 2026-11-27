@@ -46,14 +46,14 @@ class AuthTests(Factory, TestCase):
         client = APIClient()
         for body in (
             {"username": "second", "email": "FIRST@example.test", "password": PASSWORD},
-            {"username": "third", "email": "third@example.test", "password": "123"},
+            {"username": "third", "email": "third@example.test", "password": "1" * 3},
         ):
             self.assertEqual(client.post("/api/auth/register/", body).status_code, 400)
 
     def test_login_is_throttled(self):
         client = APIClient()
         codes = [
-            client.post("/api/auth/login/", {"username": "x", "password": "y"}).status_code
+            client.post("/api/auth/login/", {"username": "x", "password": PASSWORD}).status_code
             for _ in range(11)
         ]
         self.assertEqual(codes[-1], 429)

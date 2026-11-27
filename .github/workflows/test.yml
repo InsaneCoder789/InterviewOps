@@ -31,13 +31,13 @@ jobs:
       postgres:
         image: postgres:18
         env:
-          POSTGRES_PASSWORD: ci-only
+          POSTGRES_HOST_AUTH_METHOD: trust
         ports: ["5432:5432"]
         options: >-
           --health-cmd pg_isready --health-interval 5s --health-retries 10
     env:
       DJANGO_DEBUG: "1"
-      DATABASE_URL: postgresql://postgres:ci-only@localhost:5432/postgres
+      DATABASE_URL: postgresql://postgres@localhost:5432/postgres
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
@@ -52,20 +52,19 @@ jobs:
       - name: Check production settings
         env:
           DJANGO_DEBUG: "0"
-          DJANGO_SECRET_KEY: ci-only-${{ github.run_id }}-0123456789abcdefghijklmnopqrstuvwxyz-ABCDEFGHIJKL
-        run: python manage.py check --deploy --fail-level WARNING
+        run: |
+          export DJANGO_SECRET_KEY="$(openssl rand -hex 32)"
+          python manage.py check --deploy --fail-level WARNING
       - name: Prove migrations reverse and reapply
         run: |
           python manage.py migrate --noinput
           python manage.py migrate scheduling 0003 --noinput
           python manage.py migrate --noinput
       - name: Back up and restore
-        env:
-          PGPASSWORD: ci-only
         run: |
           # Use the client tools from the server image, so the versions match.
-          python manage.py seed_demo --password "ci-only-demo-passphrase"
-          docker run --rm --network host -v "$PWD:/work" -w /work -e DATABASE_URL -e PGPASSWORD postgres:18 sh -ec '
+          python manage.py seed_demo > /dev/null
+          docker run --rm --network host -v "$PWD:/work" -w /work -e DATABASE_URL postgres:18 sh -ec '
             scripts/backup.sh /tmp/ci.dump
             createdb -h localhost -U postgres restored
             scripts/verify_backup.sh /tmp/ci.dump "${DATABASE_URL%/postgres}/restored"
@@ -76,14 +75,17 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v5
+      - name: Create local settings
+        run: sh scripts/local_env.sh
       - name: Build and start the stack
         run: docker compose up --build --detach --wait --wait-timeout 180
       - name: Smoke test
         run: |
           curl --fail --silent http://localhost:8000/health/
-          docker compose exec -T api python manage.py seed_demo --password "ci-only-demo-passphrase"
+          demo=$(openssl rand -hex 16)
+          docker compose exec -T api python manage.py seed_demo --password "$demo" > /dev/null
           token=$(curl --fail --silent -H 'Content-Type: application/json' \
-            -d '{"username":"demo-student-ira","password":"ci-only-demo-passphrase"}' \
+            -d "{\"username\":\"demo-student-ira\",\"password\":\"$demo\"}" \
             http://localhost:8000/api/auth/login/ | python3 -c 'import json,sys; print(json.load(sys.stdin)["token"])')
           curl --fail --silent -H "Authorization: Token $token" http://localhost:8000/api/slots/
           docker compose exec -T worker python manage.py check_queue

@@ -8,6 +8,7 @@ the deploy steps have not.
 With Docker:
 
 ```bash
+sh scripts/local_env.sh   # once: random local values in .env
 docker compose up --build
 ```
 

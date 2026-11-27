@@ -4,6 +4,8 @@ from urllib.parse import parse_qsl, unquote, urlsplit
 
 from django.core.exceptions import ImproperlyConfigured
 
+from .local_key import local_secret_key
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
@@ -20,7 +22,7 @@ SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "")
 if not SECRET_KEY:
     if not DEBUG:
         raise ImproperlyConfigured("Set DJANGO_SECRET_KEY (or DJANGO_DEBUG=1 for local work).")
-    SECRET_KEY = "local-development-only-not-a-secret"  # noqa: S105 (debug only)
+    SECRET_KEY = local_secret_key(BASE_DIR / ".dev-secret-key")
 
 ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1")
 if render_host := os.environ.get("RENDER_EXTERNAL_HOSTNAME"):

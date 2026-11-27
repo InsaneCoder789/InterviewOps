@@ -147,7 +147,7 @@ ignored. Sign-up is open in debug mode and closed otherwise unless
 ```http
 POST /api/auth/register/
 
-{"username": "ravi", "email": "Ravi@Example.test", "password": "local-demo-pass-ravi"}
+{"username": "ravi", "email": "Ravi@Example.test", "password": "<password>"}
 ```
 
 `201 Created`
@@ -181,14 +181,14 @@ less than a full lifetime away. Log in with the username, not the email. Any
 ```http
 POST /api/auth/login/
 
-{"username": "ravi", "password": "local-demo-pass-ravi"}
+{"username": "ravi", "password": "<password>"}
 ```
 
 `200 OK`
 
 ```json
 {
-  "token": "0123456789abcdef0123456789abcdef01234567",
+  "token": "<token>",
   "expires_at": "2026-11-27T20:15:30.124000Z"
 }
 ```

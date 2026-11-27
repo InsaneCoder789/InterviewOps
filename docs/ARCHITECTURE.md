@@ -199,7 +199,7 @@ here.
 |---|---|---|
 | `DATABASE_URL` | `postgresql://interviewops@localhost:5432/interviewops` | database; query parameters such as `sslmode` become connection options |
 | `DJANGO_DEBUG` | off | `1`, `true` or `yes` enables debug mode |
-| `DJANGO_SECRET_KEY` | none | required unless debug is on |
+| `DJANGO_SECRET_KEY` | none | required unless debug is on, where one is generated into `.dev-secret-key` |
 | `DJANGO_ALLOWED_HOSTS` | `localhost,127.0.0.1` | comma-separated host names |
 | `RENDER_EXTERNAL_HOSTNAME` | none | appended to allowed hosts when present |
 | `SECURE_SSL_REDIRECT` | on when debug is off | redirect HTTP to HTTPS, except `/health/` |

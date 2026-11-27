@@ -8,6 +8,8 @@ from django.test import TestCase, override_settings
 from accounts.models import User
 from feedback.models import Feedback
 
+from .base import PASSWORD
+
 
 class OperationsTests(TestCase):
     def test_throttle_counters_are_stored_in_the_database(self):
@@ -19,7 +21,7 @@ class OperationsTests(TestCase):
     @override_settings(DEBUG=True)
     def test_seed_demo_creates_usable_data_once(self):
         out = io.StringIO()
-        call_command("seed_demo", password="local-demo-passphrase-1", stdout=out)
+        call_command("seed_demo", password=PASSWORD, stdout=out)
         self.assertEqual(User.objects.count(), 5)
         self.assertEqual(Feedback.objects.count(), 1)
         with self.assertRaises(CommandError):
